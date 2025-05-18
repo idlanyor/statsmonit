@@ -114,7 +114,7 @@
             document.getElementById('platform').textContent = data.platform;
             document.getElementById('architecture').textContent = data.architecture;
             document.getElementById('uptime').textContent = formatUptime(data.uptime);
-            document.getElementById('latency-small').textContent = `Latency: ${Date.now() - data.timestamp}ms`;
+            document.getElementById('latency-small').textContent = `Latency: ${data.timestamp - Date.now()}ms`;
 
             document.getElementById('load-1').textContent = data.load_average[0].toFixed(2);
             document.getElementById('load-5').textContent = data.load_average[1].toFixed(2);
