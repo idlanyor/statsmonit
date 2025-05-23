@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
     paths: 
       - 'README.md'
-      - '.github/workflows/docs.yml'
+      - '.github/workflows/generate-docs.yml'
       - 'docs/**'
   pull_request:
     branches: [ main, master ]
@@ -34,6 +34,8 @@ jobs:
       with:
         node-version: '18'
 
+    - name: Install tree command
+      run: sudo apt-get update && sudo apt-get install -y tree
 
     - name: Create docs directory structure
       run: |
@@ -325,9 +327,16 @@ jobs:
       working-directory: docs
       run: npm run build
 
-    - name: Checking Files
-      working-directory: docs
-      run: ls docs/dist/*
+    - name: Checking Files Structure
+      run: |
+        echo "=== Project Structure ==="
+        tree -a -I '.git|node_modules' .
+        echo ""
+        echo "=== Docs Directory Structure ==="
+        tree docs/
+        echo ""
+        echo "=== Generated Files ==="
+        tree docs/dist/
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
