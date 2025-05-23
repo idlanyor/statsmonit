@@ -154,7 +154,7 @@ jobs:
         npm install -g marked highlight.js
 
         # Read README content
-        README_CONTENT=$(cat README.md)
+        README_CONTENT=$(cat readme.md)
         
         # Convert README to HTML
         echo "$README_CONTENT" | marked > docs/readme_content.html
