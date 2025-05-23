@@ -6,7 +6,6 @@ on:
     paths: 
       - 'README.md'
       - '.github/workflows/generate-docs.yml'
-      - 'docs/**'
   pull_request:
     branches: [ main, master ]
     paths: 
