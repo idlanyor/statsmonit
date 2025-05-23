@@ -325,6 +325,10 @@ jobs:
       working-directory: docs
       run: npm run build
 
+    - name: Checking Files
+      working-directory: docs
+      run: ls docs/dist/*
+
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
