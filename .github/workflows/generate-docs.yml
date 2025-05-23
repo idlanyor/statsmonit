@@ -39,12 +39,13 @@ jobs:
 
     - name: Create docs directory structure
       run: |
-        mkdir -p docs/src
-        mkdir -p docs/dist
+        rm -rf *
+        mkdir -p src
+        mkdir -p dist
 
     - name: Create package.json
       run: |
-        cat > docs/package.json << 'EOF'
+        cat > package.json << 'EOF'
         {
           "name": "docs-generator",
           "version": "1.0.0",
@@ -61,7 +62,7 @@ jobs:
 
     - name: Create Tailwind config
       run: |
-        cat > docs/tailwind.config.js << 'EOF'
+        cat > tailwind.config.js << 'EOF'
         /** @type {import('tailwindcss').Config} */
         module.exports = {
           content: ["./dist/*.html"],
@@ -114,7 +115,7 @@ jobs:
 
     - name: Create Tailwind input CSS
       run: |
-        cat > docs/src/input.css << 'EOF'
+        cat > src/input.css << 'EOF'
         @tailwind base;
         @tailwind components;
         @tailwind utilities;
@@ -147,7 +148,6 @@ jobs:
         EOF
 
     - name: Install dependencies
-      working-directory: docs
       run: npm install
 
     - name: Convert README to HTML and create documentation
@@ -159,10 +159,10 @@ jobs:
         README_CONTENT=$(cat readme.md)
         
         # Convert README to HTML
-        echo "$README_CONTENT" | marked > docs/readme_content.html
+        echo "$README_CONTENT" | marked > readme_content.html
 
         # Create main HTML file
-        cat > docs/dist/index.html << 'EOF'
+        cat > dist/index.html << 'EOF'
         <!DOCTYPE html>
         <html lang="en" class="scroll-smooth">
         <head>
@@ -287,10 +287,10 @@ jobs:
         EOF
 
         # Insert the converted README content
-        cat docs/readme_content.html >> docs/dist/index.html
+        cat readme_content.html >> dist/index.html
 
         # Close the HTML structure
-        cat >> docs/dist/index.html << 'EOF'
+        cat >> dist/index.html << 'EOF'
                             </div>
                         </div>
                     </div>
@@ -336,7 +336,7 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: './docs/dist'
+        path: './dist'
 
   deploy:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
