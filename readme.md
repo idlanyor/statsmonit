@@ -14,7 +14,7 @@
 
 ## Features
 
-- **Real-time Monitoring**: Get live updates every 5 seconds.
+- **Real-time Monitoring**: Get live updates every 3 seconds.
 - **CPU Usage**: Shows CPU load percentage and model details.
 - **Memory Usage**: Displays RAM consumption with detailed usage statistics.
 - **Temperature**: Displays CPU temperature in real-time 
@@ -29,7 +29,6 @@
 - **NPM** (comes with Node.js)
 - **g++** (to compile some packages)
 - **cmake** (to compile some packages)
-- **wmic** (required for windows)
 
 ### Steps
 1. Clone this repository:
