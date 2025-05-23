@@ -332,9 +332,6 @@ jobs:
         echo "=== Project Structure ==="
         tree -a -I '.git|node_modules' .
         echo ""
-        echo "=== Docs Directory Structure ==="
-        tree docs/
-        echo ""
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
