@@ -313,7 +313,7 @@ jobs:
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${REPO_NAME} - GitHub Actions Documentation</title>
+            <title>${REPO_NAME} - Documentation</title>
             <meta name="description" content="${REPO_DESCRIPTION}">
             <link href="./output.css" rel="stylesheet">
             <link rel="stylesheet" href="https://cdn.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
