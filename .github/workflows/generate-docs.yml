@@ -1,4 +1,4 @@
-name: Generate Web Documentation
+name: Generate GitHub Actions Documentation
 
 on:
   push:
@@ -36,6 +36,12 @@ jobs:
     - name: Install tree command
       run: sudo apt-get update && sudo apt-get install -y tree
 
+    - name: Get repository info
+      id: repo-info
+      run: |
+        echo "REPO_NAME=$(echo ${{ github.repository }} | cut -d '/' -f 2)" >> $GITHUB_ENV
+        echo "REPO_DESCRIPTION=$(curl -s https://api.github.com/repos/${{ github.repository }} | jq -r '.description // "GitHub Actions Documentation"')" >> $GITHUB_ENV
+
     - name: Create docs directory structure
       run: |
         mv readme.md .readme.md
@@ -48,7 +54,7 @@ jobs:
       run: |
         cat > package.json << 'EOF'
         {
-          "name": "docs-generator",
+          "name": "github-actions-docs-generator",
           "version": "1.0.0",
           "scripts": {
             "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
@@ -66,50 +72,128 @@ jobs:
         cat > tailwind.config.js << 'EOF'
         /** @type {import('tailwindcss').Config} */
         module.exports = {
+          darkMode: 'class',
           content: ["./dist/*.html"],
           theme: {
             extend: {
               fontFamily: {
-                'sans': ['Inter', 'system-ui', 'sans-serif'],
+                'sans': ['Fira Code', 'monospace'],
                 'mono': ['JetBrains Mono', 'Fira Code', 'monospace'],
               },
               colors: {
-                'brand': {
-                  50: '#f0f9ff',
-                  100: '#e0f2fe',
-                  200: '#bae6fd',
-                  300: '#7dd3fc',
-                  400: '#38bdf8',
-                  500: '#0ea5e9',
-                  600: '#0284c7',
-                  700: '#0369a1',
-                  800: '#075985',
-                  900: '#0c4a6e',
+                'cyber': {
+                  50: '#ecfdf5',
+                  100: '#d1fae5',
+                  200: '#a7f3d0',
+                  300: '#6ee7b7',
+                  400: '#34d399',
+                  500: '#10b981',
+                  600: '#059669',
+                  700: '#047857',
+                  800: '#065f46',
+                  900: '#064e3b',
                 },
+                'neon': {
+                  400: '#f0abfc',
+                  500: '#e879f9',
+                  600: '#d946ef',
+                },
+                'hacker': {
+                  dark: '#0d1117',
+                  light: '#161b22',
+                  accent: '#238636',
+                  text: '#00ff00',
+                }
               },
               animation: {
-                'fade-in': 'fadeIn 0.5s ease-in-out',
-                'slide-up': 'slideUp 0.5s ease-out',
+                'terminal-cursor': 'blink 1s step-end infinite',
+                'glitch': 'glitch 1s ease-in-out infinite',
                 'float': 'float 6s ease-in-out infinite',
+                'matrix-text': 'matrix 20s linear infinite',
+                'typing': 'typing 3.5s steps(40, end), blink-caret .75s step-end infinite',
               },
               keyframes: {
-                fadeIn: {
-                  '0%': { opacity: '0' },
-                  '100%': { opacity: '1' },
+                blink: {
+                  '0%, 100%': { opacity: '1' },
+                  '50%': { opacity: '0' },
                 },
-                slideUp: {
-                  '0%': { transform: 'translateY(20px)', opacity: '0' },
-                  '100%': { transform: 'translateY(0)', opacity: '1' },
+                glitch: {
+                  '0%, 100%': { transform: 'translate(0)' },
+                  '20%': { transform: 'translate(-5px, 5px)' },
+                  '40%': { transform: 'translate(-5px, -5px)' },
+                  '60%': { transform: 'translate(5px, 5px)' },
+                  '80%': { transform: 'translate(5px, -5px)' },
                 },
                 float: {
                   '0%, 100%': { transform: 'translateY(0px)' },
-                  '50%': { transform: 'translateY(-10px)' },
+                  '50%': { transform: 'translateY(-20px)' },
                 },
+                matrix: {
+                  '0%': { transform: 'translateY(0)' },
+                  '100%': { transform: 'translateY(-10000px)' },
+                },
+                typing: {
+                  'from': { width: '0' },
+                  'to': { width: '100%' },
+                },
+                'blink-caret': {
+                  'from, to': { borderColor: 'transparent' },
+                  '50%': { borderColor: '#00ff00' },
+                }
               },
+              textShadow: {
+                'neon': '0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0073e6, 0 0 20px #0073e6, 0 0 25px #0073e6',
+                'cyber': '0 0 5px #00ff00, 0 0 10px #00ff00',
+              },
+              backgroundImage: {
+                'matrix': 'url("data:image/svg+xml,%3Csvg width=\'100%25\' height=\'100%25\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cdefs%3E%3Cpattern id=\'matrix\' patternUnits=\'userSpaceOnUse\' width=\'20\' height=\'20\' patternTransform=\'scale(2) rotate(0)\'%3E%3Ctext x=\'0\' y=\'15\' font-family=\'monospace\' font-size=\'10\' fill=\'%2300ff0022\'%3E1%3C/text%3E%3Ctext x=\'10\' y=\'15\' font-family=\'monospace\' font-size=\'10\' fill=\'%2300ff0011\'%3E0%3C/text%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23matrix)\'/%3E%3C/svg%3E")',
+              }
             },
           },
           plugins: [
             require('@tailwindcss/typography'),
+            function({ addUtilities }) {
+              const newUtilities = {
+                '.text-shadow-neon': {
+                  textShadow: '0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0073e6, 0 0 20px #0073e6, 0 0 25px #0073e6',
+                },
+                '.text-shadow-cyber': {
+                  textShadow: '0 0 5px #00ff00, 0 0 10px #00ff00',
+                },
+                '.terminal-text': {
+                  fontFamily: 'monospace',
+                  color: '#00ff00',
+                  backgroundColor: '#0d1117',
+                  padding: '1rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #30363d',
+                },
+                '.glitch': {
+                  position: 'relative',
+                  '&::before, &::after': {
+                    content: 'attr(data-text)',
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    width: '100%',
+                    height: '100%',
+                  },
+                  '&::before': {
+                    left: '2px',
+                    textShadow: '-2px 0 #ff00ff',
+                    animation: 'glitch 0.3s infinite',
+                    clipPath: 'polygon(0 0, 100% 0, 100% 45%, 0 45%)',
+                  },
+                  '&::after': {
+                    left: '-2px',
+                    textShadow: '2px 0 #00ffff',
+                    animation: 'glitch 0.3s infinite reverse',
+                    clipPath: 'polygon(0 55%, 100% 55%, 100% 100%, 0 100%)',
+                  },
+                },
+              }
+              addUtilities(newUtilities)
+            },
           ],
         }
         EOF
@@ -121,7 +205,7 @@ jobs:
         @tailwind components;
         @tailwind utilities;
 
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
         @layer base {
           html {
@@ -129,21 +213,77 @@ jobs:
           }
           
           body {
-            @apply bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800;
+            @apply bg-hacker-dark text-gray-300 font-mono;
+          }
+
+          ::-webkit-scrollbar {
+            @apply w-2;
+          }
+          
+          ::-webkit-scrollbar-track {
+            @apply bg-hacker-dark;
+          }
+          
+          ::-webkit-scrollbar-thumb {
+            @apply bg-hacker-accent rounded-full;
           }
         }
 
         @layer components {
-          .glass-card {
-            @apply bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 rounded-xl shadow-lg;
+          .terminal-card {
+            @apply bg-hacker-light border border-gray-700 rounded-md shadow-lg overflow-hidden;
           }
           
-          .gradient-text {
-            @apply bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent;
+          .terminal-header {
+            @apply flex items-center gap-2 px-4 py-2 bg-gray-800 border-b border-gray-700;
           }
           
-          .hover-lift {
-            @apply transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl;
+          .terminal-circle {
+            @apply w-3 h-3 rounded-full;
+          }
+          
+          .cyber-btn {
+            @apply relative inline-flex items-center justify-center px-6 py-3 overflow-hidden font-mono font-medium tracking-tighter text-white bg-gray-800 rounded-md group;
+          }
+          
+          .cyber-btn::before {
+            @apply absolute w-full h-full bg-gradient-to-br from-cyber-500 to-neon-500 left-0 top-0 transform origin-top opacity-30 transition-all duration-500 ease-in-out scale-x-0;
+            content: '';
+          }
+          
+          .cyber-btn:hover::before {
+            @apply scale-x-100;
+          }
+          
+          .cyber-btn::after {
+            @apply absolute w-full h-full bg-gradient-to-br from-cyber-500 to-neon-500 left-0 top-0 transform origin-bottom opacity-30 transition-all duration-500 ease-in-out scale-x-0;
+            content: '';
+          }
+          
+          .cyber-btn:hover::after {
+            @apply scale-x-100;
+          }
+          
+          .cyber-btn span {
+            @apply relative z-10;
+          }
+
+          .matrix-bg {
+            @apply relative overflow-hidden;
+          }
+          
+          .matrix-bg::before {
+            @apply absolute inset-0 bg-matrix opacity-5;
+            content: '';
+          }
+
+          .typing-container {
+            @apply inline-block;
+          }
+          
+          .typing-text {
+            @apply overflow-hidden whitespace-nowrap border-r-4 border-hacker-text pr-1;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
           }
         }
         EOF
@@ -163,13 +303,14 @@ jobs:
         echo "$README_CONTENT" | marked > readme_content.html
 
         # Create main HTML file
-        cat > dist/index.html << 'EOF'
+        cat > dist/index.html << EOF
         <!DOCTYPE html>
         <html lang="en" class="scroll-smooth">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Documentation</title>
+            <title>${REPO_NAME} - GitHub Actions Documentation</title>
+            <meta name="description" content="${REPO_DESCRIPTION}">
             <link href="./output.css" rel="stylesheet">
             <link rel="stylesheet" href="https://cdn.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
             <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -190,18 +331,54 @@ jobs:
 
                 // Initialize theme
                 function initTheme() {
-                    const savedTheme = localStorage.getItem('theme');
-                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    // Always use dark theme for hacker aesthetic
+                    document.documentElement.classList.add('dark');
+                }
+
+                // Matrix rain effect
+                function createMatrixRain() {
+                    const canvas = document.getElementById('matrix-canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+
+                    const chars = '01';
+                    const fontSize = 14;
+                    const columns = canvas.width / fontSize;
                     
-                    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                        document.documentElement.classList.add('dark');
+                    const drops = [];
+                    for (let i = 0; i < columns; i++) {
+                        drops[i] = Math.floor(Math.random() * -100);
                     }
+
+                    function draw() {
+                        ctx.fillStyle = 'rgba(13, 17, 23, 0.05)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        ctx.fillStyle = '#00ff0022';
+                        ctx.font = fontSize + 'px monospace';
+                        
+                        for (let i = 0; i < drops.length; i++) {
+                            const text = chars[Math.floor(Math.random() * chars.length)];
+                            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                            
+                            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                                drops[i] = 0;
+                            }
+                            
+                            drops[i]++;
+                        }
+                    }
+
+                    setInterval(draw, 33);
                 }
 
                 // Initialize on load
                 document.addEventListener('DOMContentLoaded', function() {
                     initTheme();
                     hljs.highlightAll();
+                    createMatrixRain();
                     
                     // Add smooth scrolling to navigation links
                     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -216,29 +393,52 @@ jobs:
                             }
                         });
                     });
+
+                    // Typing effect for the subtitle
+                    const subtitle = document.getElementById('subtitle');
+                    if (subtitle) {
+                        const text = subtitle.textContent;
+                        subtitle.innerHTML = '';
+                        subtitle.classList.add('typing-container');
+                        
+                        const typingElement = document.createElement('span');
+                        typingElement.classList.add('typing-text');
+                        typingElement.textContent = text;
+                        
+                        subtitle.appendChild(typingElement);
+                    }
+                });
+
+                // Resize matrix canvas on window resize
+                window.addEventListener('resize', function() {
+                    const canvas = document.getElementById('matrix-canvas');
+                    if (canvas) {
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                    }
                 });
             </script>
         </head>
-        <body class="font-sans antialiased text-slate-700 dark:text-slate-300 transition-colors duration-300">
+        <body class="font-mono antialiased text-gray-300 transition-colors duration-300">
+            <!-- Matrix Background Canvas -->
+            <canvas id="matrix-canvas" class="fixed top-0 left-0 w-full h-full -z-10"></canvas>
+
             <!-- Navigation -->
-            <nav class="fixed top-0 left-0 right-0 z-50 glass-card border-b border-white/10 dark:border-slate-700/50">
+            <nav class="fixed top-0 left-0 right-0 z-50 terminal-card border-b border-gray-700">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex items-center justify-between h-16">
                         <div class="flex items-center space-x-4">
+                            <div class="terminal-header">
+                                <div class="terminal-circle bg-red-500"></div>
+                                <div class="terminal-circle bg-yellow-500"></div>
+                                <div class="terminal-circle bg-green-500"></div>
+                            </div>
                             <div class="flex-shrink-0">
-                                <h1 class="text-xl font-bold gradient-text">Documentation</h1>
+                                <h1 class="text-xl font-bold text-shadow-cyber text-hacker-text">${REPO_NAME}</h1>
                             </div>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <button onclick="toggleTheme()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200">
-                                <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                                </svg>
-                                <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                                </svg>
-                            </button>
-                            <a href="https://github.com" target="_blank" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200">
+                            <a href="https://github.com/${GITHUB_REPOSITORY}" target="_blank" class="p-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                                 </svg>
@@ -252,27 +452,32 @@ jobs:
             <main class="pt-16 min-h-screen">
                 <!-- Hero Section -->
                 <section class="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-brand-500/10 to-purple-500/10 dark:from-brand-500/5 dark:to-purple-500/5"></div>
                     <div class="relative max-w-7xl mx-auto">
                         <div class="text-center">
                             <div class="animate-float mb-8">
-                                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 shadow-lg">
+                                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-cyber-500 to-neon-600 shadow-lg">
                                     <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                                     </svg>
                                 </div>
                             </div>
-                            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold gradient-text mb-6 animate-slide-up">
-                                Project Documentation
+                            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-shadow-cyber text-hacker-text mb-6" data-text="${REPO_NAME}">
+                                ${REPO_NAME}
                             </h1>
-                            <p class="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto mb-8 animate-slide-up">
-                                Comprehensive documentation generated from your README file
+                            <p id="subtitle" class="text-xl text-gray-400 max-w-3xl mx-auto mb-8">
+                                ${REPO_DESCRIPTION}
                             </p>
-                            <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-                                <a href="#documentation" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-brand-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                                <a href="#documentation" class="cyber-btn">
                                     <span>Read Documentation</span>
-                                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                                    </svg>
+                                </a>
+                                <a href="https://github.com/${GITHUB_REPOSITORY}/actions" target="_blank" class="cyber-btn">
+                                    <span>View Workflows</span>
+                                    <svg class="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                     </svg>
                                 </a>
                             </div>
@@ -283,8 +488,14 @@ jobs:
                 <!-- Documentation Content -->
                 <section id="documentation" class="py-16 px-4 sm:px-6 lg:px-8">
                     <div class="max-w-4xl mx-auto">
-                        <div class="glass-card p-8 lg:p-12 hover-lift">
-                            <div class="prose prose-slate dark:prose-invert max-w-none prose-headings:gradient-text prose-a:text-brand-600 dark:prose-a:text-brand-400 prose-code:bg-slate-100 dark:prose-code:bg-slate-800 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700">
+                        <div class="terminal-card p-8 lg:p-12">
+                            <div class="terminal-header mb-6">
+                                <div class="terminal-circle bg-red-500"></div>
+                                <div class="terminal-circle bg-yellow-500"></div>
+                                <div class="terminal-circle bg-green-500"></div>
+                                <div class="ml-2 text-sm text-gray-400">README.md</div>
+                            </div>
+                            <div class="prose prose-invert max-w-none prose-headings:text-cyber-400 prose-a:text-cyber-400 hover:prose-a:text-cyber-300 prose-code:bg-gray-800 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700">
         EOF
 
         # Insert the converted README content
@@ -297,15 +508,59 @@ jobs:
                     </div>
                 </section>
 
+                <!-- Features Section -->
+                <section class="py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-800">
+                    <div class="max-w-7xl mx-auto">
+                        <h2 class="text-3xl font-bold text-shadow-cyber text-hacker-text mb-12 text-center">Key Features</h2>
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <div class="terminal-card p-6 hover:border-cyber-500 transition-colors duration-300">
+                                <div class="text-cyber-500 mb-4">
+                                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-xl font-bold mb-2 text-hacker-text">Automated Workflow</h3>
+                                <p class="text-gray-400">Automatically generates documentation from your README.md file whenever changes are pushed.</p>
+                            </div>
+                            <div class="terminal-card p-6 hover:border-cyber-500 transition-colors duration-300">
+                                <div class="text-cyber-500 mb-4">
+                                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-xl font-bold mb-2 text-hacker-text">Cyberpunk Design</h3>
+                                <p class="text-gray-400">Visually engaging hacker aesthetic with animations and a matrix-inspired background.</p>
+                            </div>
+                            <div class="terminal-card p-6 hover:border-cyber-500 transition-colors duration-300">
+                                <div class="text-cyber-500 mb-4">
+                                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-xl font-bold mb-2 text-hacker-text">Code Highlighting</h3>
+                                <p class="text-gray-400">Syntax highlighting for code blocks to make your documentation more readable.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Footer -->
-                <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-slate-200 dark:border-slate-700">
+                <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-gray-800">
                     <div class="max-w-7xl mx-auto text-center">
-                        <p class="text-slate-600 dark:text-slate-400">
+                        <p class="text-gray-400">
                             Documentation generated automatically from README.md
                         </p>
-                        <p class="text-sm text-slate-500 dark:text-slate-500 mt-2">
-                            Last updated: <span id="last-updated"></span>
+                        <p class="text-sm text-gray-500 mt-2">
+                            Last updated: <span id="last-updated" class="text-cyber-500"></span>
                         </p>
+                        <div class="mt-6 flex justify-center space-x-6">
+                            <a href="https://github.com/${GITHUB_REPOSITORY}" target="_blank" class="text-gray-400 hover:text-cyber-500">
+                                <span class="sr-only">GitHub</span>
+                                <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </footer>
             </main>
