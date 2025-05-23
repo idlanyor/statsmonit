@@ -325,7 +325,7 @@ jobs:
 
     - name: Build Tailwind CSS
       working-directory: docs
-      run: npm run build
+      run: cd ./docs && npm run build
 
     - name: Checking Files Structure
       run: |
