@@ -324,7 +324,6 @@ jobs:
         EOF
 
     - name: Build Tailwind CSS
-      working-directory: docs
       run: npm run build
 
     - name: Checking Files Structure
