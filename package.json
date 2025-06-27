@@ -1,20 +1,20 @@
 {
   "dependencies": {
-    "cors": "^2.8.5",
-    "diskusage": "^1.2.0",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "node-os-utils": "^1.3.7",
-    "socket.io": "^4.8.1",
-    "systeminformation": "^5.25.11",
-    "ws": "^8.18.0"
+    "cors": "latest",
+    "diskusage": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "node-os-utils": "latest",
+    "socket.io": "latest",
+    "systeminformation": "latest",
+    "ws": "latest"
   },
   "name": "statsmonit",
   "version": "1.0.0",
   "description": "A Simple Server Monitoring",
   "main": "index.js",
   "devDependencies": {
-    "tailwindcss": "3.4.17"
+    "tailwindcss": "latest"
   },
   "scripts": {
     "build": "tailwindcss -i ./src/styles.css -o ./public/css/styles.css --minify",
