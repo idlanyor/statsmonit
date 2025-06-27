@@ -1,5 +1,5 @@
 const socket = io();
-let cpuChart, ramChart, diskChart, cpuTimelineChart, memoryTimelineChart, networkTimelineChart, heapChart;
+let cpuChart, ramChart, diskChart, cpuTimelineChart, memoryTimelineChart, networkTimelineChart, heapChart, networkBarChart;
 
 function initCharts() {
     const doughnutConfig = {
@@ -284,6 +284,66 @@ function initCharts() {
             }
         }
     });
+
+    // Network Usage Bar Chart
+    networkBarChart = new Chart(document.getElementById('network-bar-chart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Input',
+                    data: [],
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)', // blue
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Output',
+                    data: [],
+                    backgroundColor: 'rgba(236, 72, 153, 0.7)', // pink
+                    borderColor: 'rgba(236, 72, 153, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+                },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: 'rgba(255, 255, 255, 0.7)' },
+                    title: {
+                        display: true,
+                        text: 'Bytes',
+                        color: 'rgba(255, 255, 255, 0.7)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: { color: 'rgba(255, 255, 255, 0.7)' }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleColor: 'rgba(255, 255, 255, 0.9)',
+                    bodyColor: 'rgba(255, 255, 255, 0.9)',
+                    callbacks: {
+                        label: function (context) {
+                            return context.dataset.label + ': ' + formatBytes(context.raw);
+                        }
+                    }
+                }
+            }
+        }
+    });
 }
 
 function updateChart(chart, value) {
@@ -447,13 +507,24 @@ function updateStats(data) {
     // Update heap statistics
     updateHeapStats(data.heap);
 
+    // Update network bar chart
+    if (networkBarChart) {
+        const labels = data.network.map(i => i.interface);
+        const inputData = data.network.map(i => i.inputBytesRaw || 0);
+        const outputData = data.network.map(i => i.outputBytesRaw || 0);
+        networkBarChart.data.labels = labels;
+        networkBarChart.data.datasets[0].data = inputData;
+        networkBarChart.data.datasets[1].data = outputData;
+        networkBarChart.update();
+    }
+
     document.title = `${data.cpu} CPU | ${data.ram} RAM | ${data.disk.usedPercent} Disk`;
     document.querySelectorAll('.animate-pulse').forEach(el => el.classList.remove('animate-pulse'));
 }
 
 socket.on('connect', () => {
     console.log('Connected to server');
-    document.querySelectorAll('.animate-pulse').forEach(el => el.classList.remove('animate-pulse'));
+    document.querySelectorAll('.chart-container, span, p').forEach(el => el.classList.remove('animate-pulse'));
     document.getElementById('connection-status').textContent = 'Connected';
     document.querySelector('.status-indicator').classList.remove("indicator-yellow");
     document.querySelector('.status-indicator').classList.add('indicator-green');
