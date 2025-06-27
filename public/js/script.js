@@ -1,5 +1,5 @@
 const socket = io();
-let cpuChart, ramChart, diskChart, cpuTimelineChart, memoryTimelineChart, networkTimelineChart, heapChart, networkBarChart;
+let cpuChart, ramChart, diskChart, cpuTimelineChart, memoryTimelineChart, networkTimelineChart, heapChart;
 
 function initCharts() {
     const doughnutConfig = {
@@ -284,66 +284,6 @@ function initCharts() {
             }
         }
     });
-
-    // Network Usage Bar Chart
-    networkBarChart = new Chart(document.getElementById('network-bar-chart').getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: [],
-            datasets: [
-                {
-                    label: 'Input',
-                    data: [],
-                    backgroundColor: 'rgba(59, 130, 246, 0.7)', // blue
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Output',
-                    data: [],
-                    backgroundColor: 'rgba(236, 72, 153, 0.7)', // pink
-                    borderColor: 'rgba(236, 72, 153, 1)',
-                    borderWidth: 1
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: { color: 'rgba(255, 255, 255, 0.7)' }
-                },
-                y: {
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: { color: 'rgba(255, 255, 255, 0.7)' },
-                    title: {
-                        display: true,
-                        text: 'Bytes',
-                        color: 'rgba(255, 255, 255, 0.7)'
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: { color: 'rgba(255, 255, 255, 0.7)' }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                    titleColor: 'rgba(255, 255, 255, 0.9)',
-                    bodyColor: 'rgba(255, 255, 255, 0.9)',
-                    callbacks: {
-                        label: function (context) {
-                            return context.dataset.label + ': ' + formatBytes(context.raw);
-                        }
-                    }
-                }
-            }
-        }
-    });
 }
 
 function updateChart(chart, value) {
@@ -476,7 +416,27 @@ function updateStats(data) {
     // Update network interfaces
     const networkInterfaces = document.getElementById('network-interfaces');
     networkInterfaces.innerHTML = '';
+    // Track max values for progress bar (per session)
+    if (!window.networkMax) window.networkMax = {};
     data.network.forEach(interface => {
+        // Track max for each interface
+        if (!window.networkMax[interface.interface]) {
+            window.networkMax[interface.interface] = {
+                input: 1,
+                output: 1,
+                total: 1
+            };
+        }
+        // Update max if current is higher
+        window.networkMax[interface.interface].input = Math.max(window.networkMax[interface.interface].input, interface.inputBytesRaw || 0);
+        window.networkMax[interface.interface].output = Math.max(window.networkMax[interface.interface].output, interface.outputBytesRaw || 0);
+        window.networkMax[interface.interface].total = Math.max(window.networkMax[interface.interface].total, interface.totalBytesRaw || 0);
+
+        // Calculate percent for progress bar
+        const inputPercent = Math.min(100, Math.round(100 * (interface.inputBytesRaw || 0) / window.networkMax[interface.interface].input));
+        const outputPercent = Math.min(100, Math.round(100 * (interface.outputBytesRaw || 0) / window.networkMax[interface.interface].output));
+        const totalPercent = Math.min(100, Math.round(100 * (interface.totalBytesRaw || 0) / window.networkMax[interface.interface].total));
+
         networkInterfaces.innerHTML += `
                   <div class="bg-gray-800 p-4 rounded-lg hover:bg-gray-750 transition-all duration-300">
                       <div class="flex justify-between items-center mb-3">
@@ -484,17 +444,26 @@ function updateStats(data) {
                           <div class="status-pill bg-indigo-900 text-indigo-300 text-xs">Active</div>
                       </div>
                       <div class="space-y-2">
-                          <div class="flex justify-between text-sm">
+                          <div class="flex justify-between text-sm items-center">
                               <span class="text-gray-400">Input:</span>
                               <span class="text-gray-200">${interface.inputBytes}</span>
                           </div>
-                          <div class="flex justify-between text-sm">
+                          <div class="w-full h-2 bg-gray-700 rounded mb-2 overflow-hidden">
+                              <div class="h-2 bg-indigo-400 transition-all duration-500" style="width: ${inputPercent}%;"></div>
+                          </div>
+                          <div class="flex justify-between text-sm items-center">
                               <span class="text-gray-400">Output:</span>
                               <span class="text-gray-200">${interface.outputBytes}</span>
                           </div>
-                          <div class="flex justify-between text-sm">
+                          <div class="w-full h-2 bg-gray-700 rounded mb-2 overflow-hidden">
+                              <div class="h-2 bg-pink-400 transition-all duration-500" style="width: ${outputPercent}%;"></div>
+                          </div>
+                          <div class="flex justify-between text-sm items-center">
                               <span class="text-gray-400">Total:</span>
                               <span class="text-gray-200">${interface.totalBytes}</span>
+                          </div>
+                          <div class="w-full h-2 bg-gray-700 rounded overflow-hidden">
+                              <div class="h-2 bg-yellow-400 transition-all duration-500" style="width: ${totalPercent}%;"></div>
                           </div>
                       </div>
                   </div>
@@ -507,24 +476,13 @@ function updateStats(data) {
     // Update heap statistics
     updateHeapStats(data.heap);
 
-    // Update network bar chart
-    if (networkBarChart) {
-        const labels = data.network.map(i => i.interface);
-        const inputData = data.network.map(i => i.inputBytesRaw || 0);
-        const outputData = data.network.map(i => i.outputBytesRaw || 0);
-        networkBarChart.data.labels = labels;
-        networkBarChart.data.datasets[0].data = inputData;
-        networkBarChart.data.datasets[1].data = outputData;
-        networkBarChart.update();
-    }
-
     document.title = `${data.cpu} CPU | ${data.ram} RAM | ${data.disk.usedPercent} Disk`;
     document.querySelectorAll('.animate-pulse').forEach(el => el.classList.remove('animate-pulse'));
 }
 
 socket.on('connect', () => {
     console.log('Connected to server');
-    document.querySelectorAll('.chart-container, span, p').forEach(el => el.classList.remove('animate-pulse'));
+    document.querySelectorAll('.animate-pulse').forEach(el => el.classList.remove('animate-pulse'));
     document.getElementById('connection-status').textContent = 'Connected';
     document.querySelector('.status-indicator').classList.remove("indicator-yellow");
     document.querySelector('.status-indicator').classList.add('indicator-green');
