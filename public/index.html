@@ -2,238 +2,634 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>StatsMonit - Real-time System Monitoring Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="/css/styles.css" rel="stylesheet">
+    <meta name="description" content="Real-time system monitoring dashboard with CPU, RAM, disk usage tracking">
+    <meta name="theme-color" content="#1e2235">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 </head>
 <body class="text-white min-h-screen">
-    <nav class="bg-gray-900 bg-opacity-80 glass-effect sticky top-0 z-10 px-6 py-4 mb-6 border-b border-gray-800">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="relative w-20 h-20 mx-auto mb-4">
+                <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-500 rounded-full animate-ping"></div>
+                <div class="absolute top-2 left-2 w-16 h-16 border-4 border-purple-500 rounded-full animate-pulse"></div>
+                <div class="absolute top-4 left-4 w-12 h-12 border-4 border-green-500 rounded-full animate-bounce"></div>
+            </div>
+            <h2 class="text-2xl font-bold animated-text">StatsMonit</h2>
+            <p class="text-gray-400 mt-2">Initializing monitoring systems...</p>
+        </div>
+    </div>
+
+    <!-- Navigation with improved mobile design -->
+    <nav class="bg-gray-900/90 backdrop-blur-md glass-effect sticky top-0 z-40 px-3 sm:px-6 py-3 sm:py-4 mb-4 sm:mb-6 border-b border-gray-700/50 shadow-lg">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-3xl font-bold animated-text">StatsMonit</h1>
-            <div class="flex items-center space-x-3">
-                <div class="text-sm px-3 py-1 rounded-full bg-gray-800 flex items-center">
-                    <span class="status-indicator indicator-yellow"></span>
-                    <span id="connection-status">Connecting..</span>
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <i class="fas fa-chart-line text-lg sm:text-2xl text-blue-400"></i>
+                    <h1 class="text-xl sm:text-3xl font-bold animated-text">StatsMonit</h1>
                 </div>
-                <div class="text-sm px-3 py-1 rounded-full bg-gray-800" id="uptime-small"></div>
+                <div class="hidden lg:flex items-center space-x-2 text-sm text-gray-400">
+                    <i class="fas fa-server text-xs"></i>
+                    <span>System Monitor</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Theme Toggle -->
+                <button id="theme-toggle" class="p-2 sm:p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors duration-200 touch-manipulation" title="Toggle Theme">
+                    <i class="fas fa-moon text-yellow-400 text-sm sm:text-base"></i>
+                </button>
+                <!-- Full Screen Toggle - Hidden on small screens -->
+                <button id="fullscreen-toggle" class="hidden sm:block p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors duration-200" title="Toggle Fullscreen">
+                    <i class="fas fa-expand text-gray-400"></i>
+                </button>
+                <!-- Connection Status -->
+                <div class="text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full bg-gray-800/80 flex items-center backdrop-blur-sm">
+                    <span class="status-indicator indicator-yellow animate-pulse"></span>
+                    <span id="connection-status" class="font-medium hidden sm:inline">Connecting...</span>
+                    <span class="sm:hidden text-xs">•</span>
+                </div>
+                <!-- Uptime Display - Simplified on mobile -->
+                <div class="hidden md:block text-sm px-3 py-2 rounded-full bg-gray-800/80 backdrop-blur-sm" id="uptime-small">
+                    <i class="fas fa-clock text-xs mr-1"></i>
+                    <span>Initializing...</span>
+                </div>
+                <!-- Settings -->
+                <button id="settings-btn" class="p-2 sm:p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors duration-200 touch-manipulation" title="Settings">
+                    <i class="fas fa-cog text-gray-400 text-sm sm:text-base"></i>
+                </button>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 pb-12">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <!-- CPU Usage -->
-            <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700 hover:border-blue-500 transition-all duration-300 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-blue-300">CPU Usage</h2>
-                    <div class="status-pill bg-blue-900 text-blue-300">Monitoring</div>
+    <div class="container mx-auto px-3 sm:px-4 pb-8 sm:pb-12">
+        <!-- Quick Stats Summary Bar -->
+        <div class="gradient-bg rounded-xl p-3 sm:p-4 shadow-lg border border-gray-700/50 mb-4 sm:mb-6 backdrop-blur-sm">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div class="text-center">
+                    <div class="text-base sm:text-lg font-bold text-blue-400" id="quick-cpu">--</div>
+                    <div class="text-xs text-gray-400">CPU</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-base sm:text-lg font-bold text-green-400" id="quick-ram">--</div>
+                    <div class="text-xs text-gray-400">RAM</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-base sm:text-lg font-bold text-purple-400" id="quick-disk">--</div>
+                    <div class="text-xs text-gray-400">DISK</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-base sm:text-lg font-bold text-orange-400" id="quick-temp">--</div>
+                    <div class="text-xs text-gray-400">TEMP</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid with improved mobile layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <!-- CPU Usage Card -->
+            <div class="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 card-hover backdrop-blur-sm group">
+                <div class="flex justify-between items-center mb-3 sm:mb-4">
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <div class="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg">
+                            <i class="fas fa-microchip text-blue-400 text-sm sm:text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-semibold text-blue-300">CPU Usage</h2>
+                            <p class="text-xs text-gray-400" id="cpu-name-small">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="status-pill bg-blue-900/50 text-blue-300 backdrop-blur-sm text-xs sm:text-sm">
+                        <i class="fas fa-eye text-xs mr-1"></i>Live
+                    </div>
                 </div>
                 <div class="flex items-center justify-between">
-                    <div class="chart-container">
+                    <div class="chart-container relative">
                         <canvas id="cpu-chart"></canvas>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-xs sm:text-sm font-bold text-blue-400" id="cpu-usage-center">0%</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-4xl font-bold mb-2" id="cpu-usage">0%</div>
-                        <p class="text-sm text-gray-400 mb-1" id="cpu-name"></p>
-                        <p class="text-sm text-gray-400">Cores: <span id="cpu-cores"></span></p>
+                    <div class="text-right ml-3 sm:ml-4">
+                        <div class="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2 transition-colors duration-300" id="cpu-usage">0%</div>
+                        <p class="text-xs sm:text-sm text-gray-400 mb-1" id="cpu-name">Detecting...</p>
+                        <div class="flex items-center text-xs sm:text-sm text-gray-400">
+                            <i class="fas fa-layer-group text-xs mr-1"></i>
+                            <span id="cpu-cores">--</span> cores
+                        </div>
+                    </div>
+                </div>
+                <!-- CPU Load bars -->
+                <div class="mt-3 sm:mt-4 space-y-2">
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>Load Average</span>
+                        <span id="cpu-load-text" class="hidden sm:inline">1m: -- 5m: -- 15m: --</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1 sm:gap-2">
+                        <div class="bg-gray-800/50 rounded p-1.5 sm:p-2 text-center">
+                            <div class="text-xs text-gray-400">1m</div>
+                            <div class="font-semibold text-blue-300 text-xs sm:text-sm" id="load-1">--</div>
+                        </div>
+                        <div class="bg-gray-800/50 rounded p-1.5 sm:p-2 text-center">
+                            <div class="text-xs text-gray-400">5m</div>
+                            <div class="font-semibold text-blue-300 text-xs sm:text-sm" id="load-5">--</div>
+                        </div>
+                        <div class="bg-gray-800/50 rounded p-1.5 sm:p-2 text-center">
+                            <div class="text-xs text-gray-400">15m</div>
+                            <div class="font-semibold text-blue-300 text-xs sm:text-sm" id="load-15">--</div>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- RAM Usage -->
-            <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700 hover:border-green-500 transition-all duration-300 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-green-300">RAM Usage</h2>
-                    <div class="status-pill bg-green-900 text-green-300">Monitoring</div>
+            <!-- RAM Usage Card -->
+            <div class="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-green-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-3 sm:mb-4">
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <div class="p-1.5 sm:p-2 bg-green-500/20 rounded-lg">
+                            <i class="fas fa-memory text-green-400 text-sm sm:text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-semibold text-green-300">RAM Usage</h2>
+                            <p class="text-xs text-gray-400">System Memory</p>
+                        </div>
+                    </div>
+                    <div class="status-pill bg-green-900/50 text-green-300 backdrop-blur-sm text-xs sm:text-sm">
+                        <i class="fas fa-eye text-xs mr-1"></i>Live
+                    </div>
                 </div>
                 <div class="flex items-center justify-between">
-                    <div class="chart-container">
+                    <div class="chart-container relative">
                         <canvas id="ram-chart"></canvas>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-xs sm:text-sm font-bold text-green-400" id="ram-usage-center">0%</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-4xl font-bold mb-2" id="ram-usage">0%</div>
-                        <p class="text-sm text-gray-400" id="ram-text"></p>
+                    <div class="text-right ml-3 sm:ml-4">
+                        <div class="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2 transition-colors duration-300" id="ram-usage">0%</div>
+                        <p class="text-xs sm:text-sm text-gray-400" id="ram-text">Calculating...</p>
+                    </div>
+                </div>
+                <!-- Memory breakdown -->
+                <div class="mt-3 sm:mt-4 space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-gray-400">Available</span>
+                        <span id="ram-available" class="text-green-300">--</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div id="ram-progress" class="bg-gradient-to-r from-green-500 to-emerald-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
             
-            <!-- Disk Usage -->
-            <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700 hover:border-purple-500 transition-all duration-300 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-purple-300">Disk Usage</h2>
-                    <div class="status-pill bg-purple-900 text-purple-300">Monitoring</div>
+            <!-- Disk Usage Card -->
+            <div class="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-3 sm:mb-4">
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <div class="p-1.5 sm:p-2 bg-purple-500/20 rounded-lg">
+                            <i class="fas fa-hdd text-purple-400 text-sm sm:text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-semibold text-purple-300">Disk Usage</h2>
+                            <p class="text-xs text-gray-400">Storage Space</p>
+                        </div>
+                    </div>
+                    <div class="status-pill bg-purple-900/50 text-purple-300 backdrop-blur-sm text-xs sm:text-sm">
+                        <i class="fas fa-eye text-xs mr-1"></i>Live
+                    </div>
                 </div>
                 <div class="flex items-center justify-between">
-                    <div class="chart-container">
+                    <div class="chart-container relative">
                         <canvas id="disk-chart"></canvas>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-xs sm:text-sm font-bold text-purple-400" id="disk-usage-center">0%</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-4xl font-bold mb-2" id="disk-usage">0%</div>
-                        <p class="text-sm text-gray-400" id="disk-text"></p>
+                    <div class="text-right ml-3 sm:ml-4">
+                        <div class="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2 transition-colors duration-300" id="disk-usage">0%</div>
+                        <p class="text-xs sm:text-sm text-gray-400" id="disk-text">Scanning...</p>
+                    </div>
+                </div>
+                <!-- Disk info -->
+                <div class="mt-3 sm:mt-4 space-y-2">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-gray-400">Free Space</span>
+                        <span id="disk-free" class="text-purple-300">--</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div id="disk-progress" class="bg-gradient-to-r from-purple-500 to-violet-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
             
-            <!-- Temperature Info -->
-            <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700 hover:border-orange-500 transition-all duration-300 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-orange-300">Temperature</h2>
-                    <div class="status-pill bg-orange-900 text-orange-300">Monitoring</div>
+            <!-- Temperature Card -->
+            <div class="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-orange-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-3 sm:mb-4">
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <div class="p-1.5 sm:p-2 bg-orange-500/20 rounded-lg">
+                            <i class="fas fa-thermometer-half text-orange-400 text-sm sm:text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-semibold text-orange-300">Temperature</h2>
+                            <p class="text-xs text-gray-400">System Heat</p>
+                        </div>
+                    </div>
+                    <div class="status-pill bg-orange-900/50 text-orange-300 backdrop-blur-sm text-xs sm:text-sm">
+                        <i class="fas fa-eye text-xs mr-1"></i>Live
+                    </div>
                 </div>
                 <div class="flex items-center justify-between">
-                    <div class="w-16 h-16 rounded-full flex items-center justify-center bg-gray-800 mr-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center bg-gray-800/50 border border-gray-700">
+                        <i class="fas fa-thermometer-half text-2xl sm:text-3xl text-orange-400"></i>
                     </div>
-                    <div class="text-right">
-                        <div class="text-4xl font-bold mb-2" id="temperature">--</div>
-                        <p class="text-sm text-gray-400" id="temp-status">System Temperature</p>
+                    <div class="text-right ml-3 sm:ml-4">
+                        <div class="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2 transition-colors duration-300" id="temperature">--</div>
+                        <p class="text-xs sm:text-sm text-gray-400" id="temp-status">Monitoring...</p>
+                    </div>
+                </div>
+                <!-- Temperature status bar -->
+                <div class="mt-3 sm:mt-4">
+                    <div class="flex justify-between text-xs text-gray-400 mb-2">
+                        <span>Temperature Status</span>
+                        <span id="temp-status-text">Normal</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div id="temp-progress" class="bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 h-2 rounded-full transition-all duration-500" style="width: 30%"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- System Info -->
-            <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700 hover:border-yellow-500 transition-all duration-300 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-yellow-300">System Info</h2>
-                    <div class="status-pill bg-yellow-900 text-yellow-300">Details</div>
+            <!-- System Info Card -->
+            <div class="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-yellow-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-3 sm:mb-4">
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <div class="p-1.5 sm:p-2 bg-yellow-500/20 rounded-lg">
+                            <i class="fas fa-info-circle text-yellow-400 text-sm sm:text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-semibold text-yellow-300">System Info</h2>
+                            <p class="text-xs text-gray-400">Hardware Details</p>
+                        </div>
+                    </div>
+                    <div class="status-pill bg-yellow-900/50 text-yellow-300 backdrop-blur-sm text-xs sm:text-sm">
+                        <i class="fas fa-desktop text-xs mr-1"></i>Details
+                    </div>
                 </div>
-                <ul class="space-y-3">
-                    <li class="flex justify-between items-center">
-                        <span class="text-gray-400">Hostname:</span>
-                        <span id="hostname" class="font-semibold bg-gray-800 px-3 py-1 rounded-full text-yellow-100"></span>
+                <ul class="space-y-2 sm:space-y-3">
+                    <li class="flex justify-between items-center p-1.5 sm:p-2 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-server text-xs text-gray-400"></i>
+                            <span class="text-gray-400 text-xs sm:text-sm">Hostname:</span>
+                        </div>
+                        <span id="hostname" class="font-semibold text-yellow-100 text-xs sm:text-sm">--</span>
                     </li>
-                    <li class="flex justify-between items-center">
-                        <span class="text-gray-400">Platform:</span>
-                        <span id="platform" class="font-semibold bg-gray-800 px-3 py-1 rounded-full text-yellow-100"></span>
+                    <li class="flex justify-between items-center p-1.5 sm:p-2 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors">
+                        <div class="flex items-center space-x-2">
+                            <i class="fab fa-linux text-xs text-gray-400"></i>
+                            <span class="text-gray-400 text-xs sm:text-sm">Platform:</span>
+                        </div>
+                        <span id="platform" class="font-semibold text-yellow-100 text-xs sm:text-sm">--</span>
                     </li>
-                    <li class="flex justify-between items-center">
-                        <span class="text-gray-400">Architecture:</span>
-                        <span id="architecture" class="font-semibold bg-gray-800 px-3 py-1 rounded-full text-yellow-100"></span>
+                    <li class="flex justify-between items-center p-1.5 sm:p-2 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-cogs text-xs text-gray-400"></i>
+                            <span class="text-gray-400 text-xs sm:text-sm">Architecture:</span>
+                        </div>
+                        <span id="architecture" class="font-semibold text-yellow-100 text-xs sm:text-sm">--</span>
                     </li>
-                    <li class="flex justify-between items-center">
-                        <span class="text-gray-400">Uptime:</span>
-                        <span id="uptime" class="font-semibold bg-gray-800 px-3 py-1 rounded-full text-yellow-100"></span>
+                    <li class="flex justify-between items-center p-1.5 sm:p-2 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-clock text-xs text-gray-400"></i>
+                            <span class="text-gray-400 text-xs sm:text-sm">Uptime:</span>
+                        </div>
+                        <span id="uptime" class="font-semibold text-yellow-100 text-xs sm:text-sm">--</span>
                     </li>
                 </ul>
             </div>
             
-            <!-- Load Average -->
-            <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700 hover:border-red-500 transition-all duration-300 card-hover">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-red-300">Load Average</h2>
-                    <div class="status-pill bg-red-900 text-red-300">Monitoring</div>
+            <!-- Network Speed Card -->
+            <div class="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-3 sm:mb-4">
+                    <div class="flex items-center space-x-2 sm:space-x-3">
+                        <div class="p-1.5 sm:p-2 bg-cyan-500/20 rounded-lg">
+                            <i class="fas fa-wifi text-cyan-400 text-sm sm:text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-semibold text-cyan-300">Network Speed</h2>
+                            <p class="text-xs text-gray-400">Real-time Traffic</p>
+                        </div>
+                    </div>
+                    <div class="status-pill bg-cyan-900/50 text-cyan-300 backdrop-blur-sm text-xs sm:text-sm">
+                        <i class="fas fa-broadcast-tower text-xs mr-1"></i>Live
+                    </div>
                 </div>
-                <div class="grid grid-cols-3 gap-4 text-center">
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <p class="text-gray-400 text-sm mb-2">1 min</p>
-                        <p class="text-3xl font-bold" id="load-1"></p>
+                <div class="space-y-3 sm:space-y-4">
+                    <div class="bg-gray-800/50 p-3 sm:p-4 rounded-lg border border-gray-700/50">
+                        <div class="flex justify-between items-center mb-2 sm:mb-3">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-download text-cyan-400 text-xs sm:text-sm"></i>
+                                <span class="text-gray-400 text-xs sm:text-sm">Download</span>
+                            </div>
+                            <span class="text-cyan-300 font-semibold text-xs sm:text-sm" id="network-download">0 KB/s</span>
+                        </div>
+                        <div class="w-full h-2 sm:h-3 bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-2 sm:h-3 bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500 rounded-full" id="download-bar" style="width: 0%;"></div>
+                        </div>
                     </div>
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <p class="text-gray-400 text-sm mb-2">5 min</p>
-                        <p class="text-3xl font-bold" id="load-5"></p>
-                    </div>
-                    <div class="bg-gray-800 p-4 rounded-lg">
-                        <p class="text-gray-400 text-sm mb-2">15 min</p>
-                        <p class="text-3xl font-bold" id="load-15"></p>
+                    <div class="bg-gray-800/50 p-3 sm:p-4 rounded-lg border border-gray-700/50">
+                        <div class="flex justify-between items-center mb-2 sm:mb-3">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-upload text-emerald-400 text-xs sm:text-sm"></i>
+                                <span class="text-gray-400 text-xs sm:text-sm">Upload</span>
+                            </div>
+                            <span class="text-emerald-300 font-semibold text-xs sm:text-sm" id="network-upload">0 KB/s</span>
+                        </div>
+                        <div class="w-full h-2 sm:h-3 bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-2 sm:h-3 bg-gradient-to-r from-emerald-500 to-green-500 transition-all duration-500 rounded-full" id="upload-bar" style="width: 0%;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Timeline Graphs Section -->
-        <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700 hover:border-blue-500 transition-all duration-300 card-hover mb-8">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold text-blue-300">Timeline Graphs</h2>
-                <div class="status-pill bg-blue-900 text-blue-300">History</div>
+        <!-- Enhanced Timeline Graphs Section -->
+        <div class="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 mb-6 sm:mb-8 backdrop-blur-sm">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <div class="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg">
+                        <i class="fas fa-chart-area text-blue-400 text-sm sm:text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-semibold text-blue-300">Timeline Graphs</h2>
+                        <p class="text-xs text-gray-400">Historical Performance Data</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="status-pill bg-blue-900/50 text-blue-300 backdrop-blur-sm text-xs sm:text-sm">
+                        <i class="fas fa-history text-xs mr-1"></i>Last 20 Points
+                    </div>
+                    <button id="clear-history" class="px-2 sm:px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs transition-colors touch-manipulation">
+                        <i class="fas fa-trash text-xs mr-1"></i>Clear
+                    </button>
+                </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <!-- CPU Timeline -->
-                <div class="bg-gray-800 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-blue-300 mb-3">CPU Usage History</h3>
-                    <div class="h-64">
+                <div class="bg-gray-800/50 p-3 sm:p-6 rounded-lg border border-gray-700/50 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-3 sm:mb-4">
+                        <h3 class="text-base sm:text-lg font-semibold text-blue-300 flex items-center">
+                            <i class="fas fa-microchip text-xs sm:text-sm mr-2"></i>
+                            CPU Usage History
+                        </h3>
+                        <span class="text-xs text-gray-400" id="cpu-avg">Avg: --%</span>
+                    </div>
+                    <div class="h-48 sm:h-64">
                         <canvas id="cpu-timeline-chart"></canvas>
                     </div>
                 </div>
                 
                 <!-- Memory Timeline -->
-                <div class="bg-gray-800 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-green-300 mb-3">Memory Usage History</h3>
-                    <div class="h-64">
+                <div class="bg-gray-800/50 p-3 sm:p-6 rounded-lg border border-gray-700/50 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-3 sm:mb-4">
+                        <h3 class="text-base sm:text-lg font-semibold text-green-300 flex items-center">
+                            <i class="fas fa-memory text-xs sm:text-sm mr-2"></i>
+                            Memory Usage History
+                        </h3>
+                        <span class="text-xs text-gray-400" id="mem-avg">Avg: --%</span>
+                    </div>
+                    <div class="h-48 sm:h-64">
                         <canvas id="memory-timeline-chart"></canvas>
                     </div>
                 </div>
                 
                 <!-- Network Timeline -->
-                <div class="bg-gray-800 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-indigo-300 mb-3">Network Traffic History</h3>
-                    <div class="h-64">
+                <div class="bg-gray-800/50 p-3 sm:p-6 rounded-lg border border-gray-700/50 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-3 sm:mb-4">
+                        <h3 class="text-base sm:text-lg font-semibold text-indigo-300 flex items-center">
+                            <i class="fas fa-network-wired text-xs sm:text-sm mr-2"></i>
+                            Network Traffic History
+                        </h3>
+                        <span class="text-xs text-gray-400" id="net-avg">Peak: --</span>
+                    </div>
+                    <div class="h-48 sm:h-64">
                         <canvas id="network-timeline-chart"></canvas>
                     </div>
                 </div>
                 
                 <!-- Runtime Heap Memory -->
-                <div class="bg-gray-800 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-yellow-300 mb-3">Runtime Heap Memory</h3>
-                    <div class="h-64">
+                <div class="bg-gray-800/50 p-3 sm:p-6 rounded-lg border border-gray-700/50 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-3 sm:mb-4">
+                        <h3 class="text-base sm:text-lg font-semibold text-yellow-300 flex items-center">
+                            <i class="fab fa-node-js text-xs sm:text-sm mr-2"></i>
+                            Runtime Heap Memory
+                        </h3>
+                        <span class="text-xs text-gray-400" id="heap-percent">Usage: --%</span>
+                    </div>
+                    <div class="h-48 sm:h-64">
                         <canvas id="heap-chart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Runtime Statistics -->
-        <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700 hover:border-yellow-500 transition-all duration-300 card-hover mb-8">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold text-yellow-300">Runtime Heap Statistics</h2>
-                <div class="status-pill bg-yellow-900 text-yellow-300">Monitoring</div>
+        <!-- Enhanced System Details Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Process & Runtime Stats -->
+            <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700/50 hover:border-teal-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-teal-500/20 rounded-lg">
+                            <i class="fas fa-tasks text-teal-400 text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-teal-300">Process & Runtime</h2>
+                            <p class="text-xs text-gray-400">System Processes & Node.js Stats</p>
+                        </div>
+                    </div>
+                    <div class="status-pill bg-teal-900/50 text-teal-300 backdrop-blur-sm">
+                        <i class="fas fa-cogs text-xs mr-1"></i>Active
+                    </div>
+                </div>
+                
+                <!-- Process Count -->
+                <div class="mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-teal-300 flex items-center">
+                            <i class="fas fa-list text-sm mr-2"></i>
+                            Process Count
+                        </h3>
+                        <span class="text-2xl font-bold text-teal-400" id="process-count">0</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="p-2 bg-gray-700/50 rounded">
+                            <div class="text-lg font-bold text-green-400" id="process-running">0</div>
+                            <div class="text-xs text-gray-400">Running</div>
+                        </div>
+                        <div class="p-2 bg-gray-700/50 rounded">
+                            <div class="text-lg font-bold text-blue-400" id="process-sleeping">0</div>
+                            <div class="text-xs text-gray-400">Sleeping</div>
+                        </div>
+                        <div class="p-2 bg-gray-700/50 rounded">
+                            <div class="text-lg font-bold text-yellow-400" id="process-blocked">0</div>
+                            <div class="text-xs text-gray-400">Blocked</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Runtime Heap Statistics -->
+                <div class="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                    <h3 class="font-semibold text-yellow-300 mb-4 flex items-center">
+                        <i class="fab fa-node-js text-sm mr-2"></i>
+                        Node.js Heap Statistics
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-3 bg-gray-700/50 rounded">
+                            <p class="text-gray-400 text-xs mb-1">Heap Used</p>
+                            <p class="text-lg font-bold text-pink-400" id="heap-used">--</p>
+                        </div>
+                        <div class="text-center p-3 bg-gray-700/50 rounded">
+                            <p class="text-gray-400 text-xs mb-1">Heap Total</p>
+                            <p class="text-lg font-bold text-blue-400" id="heap-total">--</p>
+                        </div>
+                        <div class="text-center p-3 bg-gray-700/50 rounded">
+                            <p class="text-gray-400 text-xs mb-1">RSS</p>
+                            <p class="text-lg font-bold text-green-400" id="heap-rss">--</p>
+                        </div>
+                        <div class="text-center p-3 bg-gray-700/50 rounded">
+                            <p class="text-gray-400 text-xs mb-1">External</p>
+                            <p class="text-lg font-bold text-purple-400" id="heap-external">--</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <div class="bg-gray-800 p-4 rounded-lg text-center">
-                    <p class="text-gray-400 text-sm mb-2">Heap Used</p>
-                    <p class="text-2xl font-bold" id="heap-used"></p>
+
+            <!-- System Time & Battery -->
+            <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700/50 hover:border-emerald-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-emerald-500/20 rounded-lg">
+                            <i class="fas fa-clock text-emerald-400 text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-emerald-300">Time & Power</h2>
+                            <p class="text-xs text-gray-400">System Time & Battery Status</p>
+                        </div>
+                    </div>
+                    <div class="status-pill bg-emerald-900/50 text-emerald-300 backdrop-blur-sm">
+                        <i class="fas fa-sync-alt text-xs mr-1 animate-spin"></i>Live
+                    </div>
                 </div>
-                <div class="bg-gray-800 p-4 rounded-lg text-center">
-                    <p class="text-gray-400 text-sm mb-2">Heap Total</p>
-                    <p class="text-2xl font-bold" id="heap-total"></p>
+                
+                <!-- System Time -->
+                <div class="mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700/50 text-center">
+                    <div class="text-3xl font-bold mb-2 font-mono" id="system-time">--:--:--</div>
+                    <div class="text-lg text-gray-300 mb-3" id="system-date">--/--/----</div>
+                    <div class="text-sm text-gray-500 flex items-center justify-center">
+                        <i class="fas fa-globe text-xs mr-1"></i>
+                        <span id="timezone">UTC</span>
+                    </div>
                 </div>
-                <div class="bg-gray-800 p-4 rounded-lg text-center">
-                    <p class="text-gray-400 text-sm mb-2">RSS</p>
-                    <p class="text-2xl font-bold" id="heap-rss"></p>
+
+                <!-- Battery Status -->
+                <div class="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50" id="battery-card" style="display: none;">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-lime-300 flex items-center">
+                            <i class="fas fa-battery-half text-sm mr-2"></i>
+                            Battery Status
+                        </h3>
+                        <span class="text-2xl font-bold" id="battery-level">--%</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-400">Status:</span>
+                            <span id="battery-status" class="font-semibold">Unknown</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-400">Time Left:</span>
+                            <span id="battery-time" class="font-semibold">--</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-3">
+                            <div id="battery-progress" class="bg-gradient-to-r from-green-500 to-lime-400 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-gray-800 p-4 rounded-lg text-center">
-                    <p class="text-gray-400 text-sm mb-2">External</p>
-                    <p class="text-2xl font-bold" id="heap-external"></p>
-                </div>
-                <div class="bg-gray-800 p-4 rounded-lg text-center">
-                    <p class="text-gray-400 text-sm mb-2">Array Buffers</p>
-                    <p class="text-2xl font-bold" id="heap-buffers"></p>
+
+                <!-- File System Info -->
+                <div class="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50" id="filesystem-card">
+                    <h3 class="font-semibold text-pink-300 mb-4 flex items-center">
+                        <i class="fas fa-folder-open text-sm mr-2"></i>
+                        File System
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400">Type:</span>
+                            <span id="fs-type" class="font-semibold text-pink-100">--</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-400">Mount:</span>
+                            <span id="fs-mount" class="font-semibold text-pink-100">--</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Network Usage -->
-        <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700 hover:border-indigo-500 transition-all duration-300 card-hover">
+        <!-- Network Interfaces -->
+        <div class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700/50 hover:border-indigo-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold text-indigo-300">Network Usage</h2>
-                <div class="status-pill bg-indigo-900 text-indigo-300">Monitoring</div>
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-indigo-500/20 rounded-lg">
+                        <i class="fas fa-network-wired text-indigo-400 text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-indigo-300">Network Interfaces</h2>
+                        <p class="text-xs text-gray-400">Network Usage by Interface</p>
+                    </div>
+                </div>
+                <div class="status-pill bg-indigo-900/50 text-indigo-300 backdrop-blur-sm">
+                    <i class="fas fa-ethernet text-xs mr-1"></i>Monitoring
+                </div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="network-interfaces">
-                <!-- Network interface data will be dynamically inserted here -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="network-interfaces">
+                <!-- Network interface cards will be dynamically inserted here -->
             </div>
         </div>
     </div>
 
-    <footer class="py-6 bg-gray-900 bg-opacity-60 glass-effect border-t border-gray-800 mt-8">
-        <div class="container mx-auto px-4 text-center text-gray-400 text-sm">
-            <p>StatsMonit - Real-time System Monitoring Dashboard</p>
-            <p class="mt-2">© 2025 StatsMonit</p>
+    <!-- Enhanced Footer -->
+    <footer class="py-8 bg-gray-900/80 backdrop-blur-md glass-effect border-t border-gray-700/50 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-2 mb-4">
+                    <i class="fas fa-chart-line text-blue-400 text-xl"></i>
+                    <h3 class="text-xl font-bold animated-text">StatsMonit</h3>
+                </div>
+                <p class="text-gray-400 text-sm mb-4">Real-time System Monitoring Dashboard</p>
+                <div class="flex items-center justify-center space-x-6 text-xs text-gray-500">
+                    <span>© 2025 StatsMonit</span>
+                    <span>•</span>
+                    <span>Powered by Node.js</span>
+                    <span>•</span>
+                    <span>Built with ❤️</span>
+                </div>
+            </div>
         </div>
     </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2"></div>
 
     <script src="/socket.io/socket.io.min.js"></script>
     <script src="/js/script.js"></script>

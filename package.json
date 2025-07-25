@@ -7,15 +7,14 @@
     "node-os-utils": "latest",
     "socket.io": "latest",
     "systeminformation": "latest",
+    "tailwindcss": "3",
     "ws": "latest"
   },
   "name": "statsmonit",
   "version": "1.0.0",
   "description": "A Simple Server Monitoring",
   "main": "index.js",
-  "devDependencies": {
-    "tailwindcss": "latest"
-  },
+  "devDependencies": {},
   "scripts": {
     "build": "tailwindcss -i ./src/styles.css -o ./public/css/styles.css --minify",
     "start": "node index.js"
