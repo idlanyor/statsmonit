@@ -1,2 +1,6 @@
 node_modules
 package-lock.json
+nohup.*
+*.log
+bun.lock
+*.yaml
