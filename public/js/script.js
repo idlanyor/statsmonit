@@ -867,9 +867,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initSettings();
     initClearHistory();
     
-    // Hide loading screen after a short delay
-    setTimeout(hideLoadingScreen, 1500);
-    
     // Load saved settings
     const savedSettings = localStorage.getItem('statsmonit-settings');
     if (savedSettings) {
@@ -881,6 +878,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Socket event handlers
 socket.on('connect', () => {
     updateConnectionStatus(true);
+    hideLoadingScreen();
     showToast('Connected to monitoring service', 'success');
 });
 
