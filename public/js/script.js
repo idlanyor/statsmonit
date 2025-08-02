@@ -878,7 +878,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Socket event handlers
 socket.on('connect', () => {
     updateConnectionStatus(true);
-    hideLoadingScreen();
     showToast('Connected to monitoring service', 'success');
 });
 
@@ -888,6 +887,7 @@ socket.on('disconnect', () => {
 });
 
 socket.on('stats', (data) => {
+    hideLoadingScreen();
     updateStats(data);
 });
 
