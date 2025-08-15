@@ -10,23 +10,32 @@ const io = socketIo(server)
 
 app.use(express.static("public"))
 
-io.on("connection", (socket) => {
-  console.log("A client connected")
+const clients = new Set()
 
-  const sendStats = async () => {
-    const stats = await getStats()
+setInterval(async () => {
+  const stats = await getStats()
+  for (const socket of clients) {
     socket.emit("stats", stats)
   }
-  sendStats()
-  
-  const interval = setInterval(sendStats, 3000)
+}, 3000)
 
-  // Clean up on disconnect
+io.on("connection", (socket) => {
+  console.log("A client connected")
+  clients.add(socket)
+
+  // Kirim data awal saat pertama connect
+  ;(async () => {
+    const stats = await getStats()
+    socket.emit("stats", stats)
+  })()
+
+  // Hapus dari daftar saat disconnect
   socket.on("disconnect", () => {
     console.log("A client disconnected")
-    clearInterval(interval)
+    clients.delete(socket)
   })
 })
+
 
 const PORT = process.env.PORT || 8088
 server.listen(PORT, () => {
