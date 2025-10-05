@@ -1,32 +1,86 @@
 const socket = io();
 let cpuChart, ramChart, diskChart, cpuTimelineChart, memoryTimelineChart, networkTimelineChart, heapChart;
 let isConnected = false;
-let isDarkTheme = true;
+let isDarkTheme = true; // Default to dark theme
 let updateInterval = 3000;
+
+// Initialize theme on load
+function initializeTheme() {
+    // Check for saved theme preference or default to dark
+    const savedTheme = localStorage.getItem('statsmonit-theme') || 'dark';
+    isDarkTheme = savedTheme === 'dark';
+
+    // Apply theme to document
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Update theme toggle icon
+    updateThemeIcon();
+}
+
+function updateThemeIcon() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const icon = themeToggle.querySelector('i');
+
+    if (isDarkTheme) {
+        icon.className = 'fas fa-moon text-yellow-400 text-sm sm:text-base';
+        themeToggle.title = 'Switch to Light Mode';
+    } else {
+        icon.className = 'fas fa-sun text-yellow-400 text-sm sm:text-base';
+        themeToggle.title = 'Switch to Dark Mode';
+    }
+}
+
+// Enhanced theme toggle functionality
+function initThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+
+    themeToggle.addEventListener('click', () => {
+        isDarkTheme = !isDarkTheme;
+        const newTheme = isDarkTheme ? 'dark' : 'light';
+
+        // Apply theme transition
+        document.documentElement.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        document.documentElement.setAttribute('data-theme', newTheme);
+
+        // Save preference
+        localStorage.setItem('statsmonit-theme', newTheme);
+
+        // Update icon
+        updateThemeIcon();
+
+        // Show notification
+        showToast(`Switched to ${isDarkTheme ? 'dark' : 'light'} theme`, 'info', 2000);
+
+        // Remove transition after animation
+        setTimeout(() => {
+            document.documentElement.style.transition = '';
+        }, 300);
+    });
+}
 
 // Toast notification system
 function showToast(message, type = 'info', duration = 3000) {
     const toastContainer = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    
+
     toast.innerHTML = `
         <div class="flex items-center space-x-3">
             <i class="fas ${getToastIcon(type)} text-lg"></i>
             <div class="flex-1">
                 <p class="font-medium">${message}</p>
             </div>
-            <button onclick="removeToast(this)" class="text-gray-400 hover:text-white">
+            <button onclick="removeToast(this)" class="text-secondary hover:text-primary">
                 <i class="fas fa-times"></i>
             </button>
         </div>
     `;
-    
+
     toastContainer.appendChild(toast);
-    
+
     // Trigger show animation
     setTimeout(() => toast.classList.add('show'), 100);
-    
+
     // Auto remove
     setTimeout(() => removeToast(toast), duration);
 }
@@ -53,27 +107,6 @@ function hideLoadingScreen() {
     loadingScreen.classList.add('hide');
     setTimeout(() => loadingScreen.style.display = 'none', 500);
 }
-
-// Theme toggle functionality
-function initThemeToggle() {
-    const themeToggle = document.getElementById('theme-toggle');
-    const icon = themeToggle.querySelector('i');
-    
-    themeToggle.addEventListener('click', () => {
-        isDarkTheme = !isDarkTheme;
-        document.body.classList.toggle('dark-theme', !isDarkTheme);
-        
-        if (isDarkTheme) {
-            icon.className = 'fas fa-moon text-yellow-400';
-        } else {
-            icon.className = 'fas fa-sun text-yellow-400';
-        }
-        
-        showToast(`Switched to ${isDarkTheme ? 'dark' : 'light'} theme`, 'info', 2000);
-    });
-}
-
-// Fullscreen toggle
 function initFullscreenToggle() {
     const fullscreenToggle = document.getElementById('fullscreen-toggle');
     const icon = fullscreenToggle.querySelector('i');
@@ -858,15 +891,21 @@ function updateConnectionStatus(connected) {
 
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize theme first
+    initializeTheme();
+
     // Initialize charts
     initCharts();
-    
+
     // Initialize UI components
     initThemeToggle();
     initFullscreenToggle();
     initSettings();
     initClearHistory();
-    
+
+    // Hide loading screen after a short delay
+    setTimeout(hideLoadingScreen, 1500);
+
     // Load saved settings
     const savedSettings = localStorage.getItem('statsmonit-settings');
     if (savedSettings) {

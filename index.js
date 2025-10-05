@@ -1,12 +1,14 @@
-const express = require("express")
-const http = require("http")
-const socketIo = require("socket.io")
-const { getStats } = require("./lib/stats.js");
-require("dotenv").config()
+import 'dotenv'
+import express from "express";
+import { static as expressStatic } from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { getStats } from "./lib/stats.js";
+
 
 const app = express()
-const server = http.createServer(app)
-const io = socketIo(server)
+const server = createServer(app)
+const io = new Server(server)
 
 app.use(express.static("public"))
 

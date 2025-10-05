@@ -4,3 +4,4 @@ nohup.*
 *.log
 bun.lock
 *.yaml
+.claude
