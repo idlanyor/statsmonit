@@ -583,75 +583,78 @@
                 </div>
             </div>
 
-            <!-- System Time & Battery -->
+            <!-- User Information -->
             <div
                 class="gradient-bg rounded-xl p-6 shadow-lg border border-gray-700/50 hover:border-emerald-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
                 <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center space-x-3">
                         <div class="p-2 bg-emerald-500/20 rounded-lg">
-                            <i class="fas fa-clock text-emerald-400 text-lg"></i>
+                            <i class="fas fa-user-circle text-emerald-400 text-lg"></i>
                         </div>
                         <div>
-                            <h2 class="text-xl font-semibold text-emerald-300">Time & Power</h2>
-                            <p class="text-xs text-black dark:text-slate-500">System Time & Battery Status</p>
+                            <h2 class="text-xl font-semibold text-emerald-300">User Information</h2>
+                            <p class="text-xs text-black dark:text-slate-500">Client Details & Session Info</p>
                         </div>
                     </div>
                     <div class="status-pill bg-emerald-900/50 text-emerald-300 backdrop-blur-sm">
-                        <i class="fas fa-sync-alt text-xs mr-1 animate-spin"></i>Live
+                        <i class="fas fa-user-check text-xs mr-1"></i>Active
                     </div>
                 </div>
 
-                <!-- System Time -->
-                <div class="mb-6 p-4 bg-gray-200 dark:bg-gray-800 rounded-lg border border-gray-700/50 text-center">
-                    <div class="text-3xl font-bold mb-2 font-mono" id="system-time">--:--:--</div>
-                    <div class="text-lg text-gray-300 mb-3" id="system-date">--/--/----</div>
-                    <div class="text-sm text-gray-500 flex items-center justify-center">
-                        <i class="fas fa-globe text-xs mr-1"></i>
-                        <span id="timezone">UTC</span>
-                    </div>
-                </div>
-
-                <!-- Battery Status -->
-                <div class="p-4 bg-gray-200 dark:bg-gray-800 rounded-lg border border-gray-700/50" id="battery-card"
-                    style="display: none;">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-lime-300 flex items-center">
-                            <i class="fas fa-battery-half text-sm mr-2"></i>
-                            Battery Status
-                        </h3>
-                        <span class="text-2xl font-bold" id="battery-level">--%</span>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-black dark:text-slate-500">Status:</span>
-                            <span id="battery-status" class="font-semibold">Unknown</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-black dark:text-slate-500">Time Left:</span>
-                            <span id="battery-time" class="font-semibold">--</span>
-                        </div>
-                        <div class="w-full bg-gray-700 rounded-full h-3">
-                            <div id="battery-progress"
-                                class="bg-gradient-to-r from-green-500 to-lime-400 h-3 rounded-full transition-all duration-500"
-                                style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- File System Info -->
-                <div class="p-4 bg-gray-200 dark:bg-gray-800 rounded-lg border border-gray-700/50" id="filesystem-card">
-                    <h3 class="font-semibold text-pink-300 mb-4 flex items-center">
-                        <i class="fas fa-folder-open text-sm mr-2"></i>
-                        File System
+                <!-- Browser & Device Info -->
+                <div class="mb-4 p-4 bg-gray-200 dark:bg-gray-800 rounded-lg border border-gray-700/50">
+                    <h3 class="font-semibold text-blue-300 mb-4 flex items-center">
+                        <i class="fas fa-browser text-sm mr-2"></i>
+                        Browser & Device
                     </h3>
                     <div class="space-y-3">
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-black dark:text-slate-500">Type:</span>
-                            <span id="fs-type" class="font-semibold text-accent">--</span>
+                            <span class="text-black dark:text-slate-500">Browser:</span>
+                            <span id="user-browser" class="font-semibold text-accent">--</span>
                         </div>
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-black dark:text-slate-500">Mount:</span>
-                            <span id="fs-mount" class="font-semibold text-accent">--</span>
+                            <span class="text-black dark:text-slate-500">Device:</span>
+                            <span id="user-device" class="font-semibold text-accent">--</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-black dark:text-slate-500">OS:</span>
+                            <span id="user-os" class="font-semibold text-accent">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network & Location Info -->
+                <div class="mb-4 p-4 bg-gray-200 dark:bg-gray-800 rounded-lg border border-gray-700/50">
+                    <h3 class="font-semibold text-purple-300 mb-4 flex items-center">
+                        <i class="fas fa-network-wired text-sm mr-2"></i>
+                        Network & Location
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-black dark:text-slate-500">IP Address:</span>
+                            <span id="user-ip" class="font-semibold text-accent">--</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-black dark:text-slate-500">Language:</span>
+                            <span id="user-language" class="font-semibold text-accent">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session Info -->
+                <div class="p-4 bg-gray-200 dark:bg-gray-800 rounded-lg border border-gray-700/50">
+                    <h3 class="font-semibold text-green-300 mb-4 flex items-center">
+                        <i class="fas fa-clock text-sm mr-2"></i>
+                        Session Information
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-black dark:text-slate-500">Connected:</span>
+                            <span id="user-connected" class="font-semibold text-accent">--</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-black dark:text-slate-500">Screen:</span>
+                            <span id="user-screen" class="font-semibold text-accent">--</span>
                         </div>
                     </div>
                 </div>
@@ -689,9 +692,21 @@
                     <i class="fas fa-chart-line text-blue-400 text-xl"></i>
                     <h3 class="text-xl font-bold animated-text">StatsMonit</h3>
                 </div>
-                <p class="text-black dark:text-slate-500 text-sm mb-4">Real-time System Monitoring Dashboard</p>
-                <div class="flex items-center justify-center space-x-6 text-xs text-gray-500">
-                    <span>© 2025 StatsMonit</span>
+                <p class="text-black dark:text-slate-500 text-sm mb-3">Real-time System Monitoring Dashboard</p>
+
+                <!-- Organization -->
+                <div class="mb-4">
+                    <a href="https://whatsapp.com/channel/0029VagADOLLSmbaxFNswH1m"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="inline-flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors duration-300 text-white text-sm font-medium">
+                        <i class="fab fa-whatsapp text-lg"></i>
+                        <span>Antidonasi Inc.</span>
+                    </a>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center gap-2 text-xs text-gray-500">
+                    <span>© 2025 Antidonasi Inc.</span>
                     <span>•</span>
                     <span>Powered by Node.js</span>
                     <span>•</span>

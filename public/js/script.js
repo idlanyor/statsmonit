@@ -691,8 +691,12 @@ function updateProcessCount(processData) {
 function updateFileSystemInfo(fsData) {
     if (!fsData) return;
 
-    document.getElementById('fs-type').textContent = fsData.type;
-    document.getElementById('fs-mount').textContent = fsData.mount;
+    // Check if elements exist before updating (they may not exist in new layout)
+    const fsTypeElement = document.getElementById('fs-type');
+    const fsMountElement = document.getElementById('fs-mount');
+
+    if (fsTypeElement) fsTypeElement.textContent = fsData.type;
+    if (fsMountElement) fsMountElement.textContent = fsData.mount;
 }
 
 function updateNetworkSpeed(networkSpeedData) {
@@ -710,49 +714,148 @@ function updateNetworkSpeed(networkSpeedData) {
     document.getElementById('upload-bar').style.width = `${uploadPercent}%`;
 }
 
+// Parse user agent to get browser, OS, and device info
+function parseUserAgent(userAgent) {
+    const ua = userAgent || navigator.userAgent;
+
+    // Detect browser
+    let browser = 'Unknown';
+    if (ua.includes('Firefox/')) {
+        browser = 'Firefox ' + ua.match(/Firefox\/(\d+)/)?.[1] || '';
+    } else if (ua.includes('Chrome/') && !ua.includes('Edg')) {
+        browser = 'Chrome ' + ua.match(/Chrome\/(\d+)/)?.[1] || '';
+    } else if (ua.includes('Edg/')) {
+        browser = 'Edge ' + ua.match(/Edg\/(\d+)/)?.[1] || '';
+    } else if (ua.includes('Safari/') && !ua.includes('Chrome')) {
+        browser = 'Safari ' + ua.match(/Version\/(\d+)/)?.[1] || '';
+    }
+
+    // Detect OS
+    let os = 'Unknown';
+    if (ua.includes('Windows NT 10.0')) os = 'Windows 10/11';
+    else if (ua.includes('Windows NT 6.3')) os = 'Windows 8.1';
+    else if (ua.includes('Windows NT 6.2')) os = 'Windows 8';
+    else if (ua.includes('Windows NT 6.1')) os = 'Windows 7';
+    else if (ua.includes('Mac OS X')) os = 'macOS ' + (ua.match(/Mac OS X ([\d_]+)/)?.[1].replace(/_/g, '.') || '');
+    else if (ua.includes('Linux')) os = 'Linux';
+    else if (ua.includes('Android')) os = 'Android ' + (ua.match(/Android ([\d.]+)/)?.[1] || '');
+    else if (ua.includes('iOS')) os = 'iOS ' + (ua.match(/OS ([\d_]+)/)?.[1].replace(/_/g, '.') || '');
+
+    // Detect device
+    let device = 'Desktop';
+    if (ua.includes('Mobile')) device = 'Mobile';
+    else if (ua.includes('Tablet')) device = 'Tablet';
+    else if (ua.includes('iPad')) device = 'iPad';
+
+    return { browser, os, device };
+}
+
+function updateUserInformation(userInfo) {
+    if (!userInfo) return;
+
+    // Parse user agent
+    const parsedUA = parseUserAgent(userInfo.userAgent);
+
+    // Update browser, device, and OS
+    document.getElementById('user-browser').textContent = parsedUA.browser;
+    document.getElementById('user-device').textContent = parsedUA.device;
+    document.getElementById('user-os').textContent = parsedUA.os;
+
+    // Update IP address
+    document.getElementById('user-ip').textContent = userInfo.ipAddress || 'Unknown';
+
+    // Update language
+    document.getElementById('user-language').textContent = userInfo.language || 'Unknown';
+
+    // Update connected time
+    if (userInfo.connectedAt) {
+        const connectedDate = new Date(userInfo.connectedAt);
+        const now = new Date();
+        const diffMs = now - connectedDate;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const remainingMins = diffMins % 60;
+
+        let timeText = '';
+        if (diffHours > 0) {
+            timeText = `${diffHours}h ${remainingMins}m ago`;
+        } else if (diffMins > 0) {
+            timeText = `${diffMins}m ago`;
+        } else {
+            timeText = 'Just now';
+        }
+        document.getElementById('user-connected').textContent = timeText;
+    }
+
+    // Update screen resolution
+    const screenRes = `${window.screen.width}x${window.screen.height}`;
+    document.getElementById('user-screen').textContent = screenRes;
+}
+
 function updateSystemTime(timeData) {
     if (!timeData) return;
 
-    document.getElementById('system-time').textContent = timeData.time;
-    document.getElementById('system-date').textContent = timeData.date;
-    document.getElementById('timezone').textContent = timeData.timezone;
+    // Check if elements exist before updating (they may not exist in new layout)
+    const systemTimeElement = document.getElementById('system-time');
+    const systemDateElement = document.getElementById('system-date');
+    const timezoneElement = document.getElementById('timezone');
+
+    if (systemTimeElement) systemTimeElement.textContent = timeData.time;
+    if (systemDateElement) systemDateElement.textContent = timeData.date;
+    if (timezoneElement) timezoneElement.textContent = timeData.timezone;
 }
 
 function updateBatteryStatus(batteryData) {
     const batteryCard = document.getElementById('battery-card');
-    
+
+    // Check if battery card exists (it may not exist in new layout)
+    if (!batteryCard) return;
+
     if (!batteryData) {
         batteryCard.style.display = 'none';
         return;
     }
 
     batteryCard.style.display = 'block';
-    document.getElementById('battery-level').textContent = `${batteryData.level}%`;
-    
-    const status = batteryData.isCharging ? 'Charging' : 'Discharging';
-    document.getElementById('battery-status').textContent = status;
-    
-    if (batteryData.timeLeft > 0) {
-        const hours = Math.floor(batteryData.timeLeft / 60);
-        const minutes = batteryData.timeLeft % 60;
-        document.getElementById('battery-time').textContent = `${hours}h ${minutes}m remaining`;
-    } else {
-        document.getElementById('battery-time').textContent = '--';
+
+    const batteryLevelElement = document.getElementById('battery-level');
+    const batteryStatusElement = document.getElementById('battery-status');
+    const batteryTimeElement = document.getElementById('battery-time');
+    const batteryProgressElement = document.getElementById('battery-progress');
+
+    if (batteryLevelElement) {
+        batteryLevelElement.textContent = `${batteryData.level}%`;
+
+        // Change color based on battery level
+        batteryLevelElement.classList.remove('text-red-400', 'text-yellow-400', 'text-green-400');
+
+        if (batteryData.level <= 20) {
+            batteryLevelElement.classList.add('text-red-400');
+        } else if (batteryData.level <= 50) {
+            batteryLevelElement.classList.add('text-yellow-400');
+        } else {
+            batteryLevelElement.classList.add('text-green-400');
+        }
+    }
+
+    if (batteryStatusElement) {
+        const status = batteryData.isCharging ? 'Charging' : 'Discharging';
+        batteryStatusElement.textContent = status;
+    }
+
+    if (batteryTimeElement) {
+        if (batteryData.timeLeft > 0) {
+            const hours = Math.floor(batteryData.timeLeft / 60);
+            const minutes = batteryData.timeLeft % 60;
+            batteryTimeElement.textContent = `${hours}h ${minutes}m remaining`;
+        } else {
+            batteryTimeElement.textContent = '--';
+        }
     }
 
     // Update battery progress bar
-    document.getElementById('battery-progress').style.width = `${batteryData.level}%`;
-
-    // Change color based on battery level
-    const batteryLevel = document.getElementById('battery-level');
-    batteryLevel.classList.remove('text-red-400', 'text-yellow-400', 'text-green-400');
-    
-    if (batteryData.level <= 20) {
-        batteryLevel.classList.add('text-red-400');
-    } else if (batteryData.level <= 50) {
-        batteryLevel.classList.add('text-yellow-400');
-    } else {
-        batteryLevel.classList.add('text-green-400');
+    if (batteryProgressElement) {
+        batteryProgressElement.style.width = `${batteryData.level}%`;
     }
 }
 
@@ -849,6 +952,7 @@ function updateStats(data) {
     updateSystemTime(data.system_time);
     updateBatteryStatus(data.battery_status);
     updateNetworkInterfaces(data.network);
+    updateUserInformation(data.user_info);
 
     // Check for alerts
     checkAlerts(data);
