@@ -19,7 +19,7 @@
 **StatsMonit** is a powerful, lightweight server monitoring dashboard built with **Node.js** and **Socket.io**. It provides comprehensive real-time system statistics with a beautiful, responsive UI, including **CPU usage, RAM usage, disk space, all network interfaces, user information**, and much more.
 
 ## Demo
-[![Image](https://api.microlink.io/?url=https%3A%2F%2Fmonitor.kanata.web.id&amp;screenshot=true&amp;meta=false&amp;embed=screenshot.url&amp;overlay.browser=dark&amp;waitForTimeout=30000&amp;overlay.background=linear-gradient(90deg%2C%20%23FF9A8B%200%25%2C%20%23FF6A88%2055%25%2C%20%23FF99AC%20100%25))](https://monitor.kanata.web.id)
+[![Image](https://api.microlink.io/?url=https%3A%2F%2Fnode2.antidonasi.web.id&amp;screenshot=false&amp;meta=true&amp;embed=screenshot.url&amp;overlay.browser=dark&amp;waitForTimeout=30000&amp;overlay.background=linear-gradient(90deg%2C%20%23FF9A8B%200%25%2C%20%23FF6A88%2055%25%2C%20%23FF99AC%20100%25))](https://monitor.kanata.web.id)
 
 
 ## ✨ Features
