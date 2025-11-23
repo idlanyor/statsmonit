@@ -107,7 +107,7 @@ export default function Home() {
                     data={stats.cpu_history}
                     label="CPU Usage"
                     color="#60A5FA"
-                    dataKey="value"
+                    dataKey="usage"
                     maxValue={100}
                   />
                 ) : (
@@ -138,7 +138,7 @@ export default function Home() {
                     data={stats.memory_history}
                     label="Memory Usage"
                     color="#34D399"
-                    dataKey="value"
+                    dataKey="usage"
                     maxValue={100}
                   />
                 ) : (

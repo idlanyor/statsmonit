@@ -16,7 +16,7 @@ interface NetworkInterfaceProps {
 export default function NetworkInterface({ interfaces }: NetworkInterfaceProps) {
   if (!interfaces || interfaces.length === 0) {
     return (
-      <div className="text-center text-slate-500 py-8">
+      <div className="text-center text-slate-500 dark:text-slate-500 py-8">
         <i className="fas fa-network-wired text-3xl mb-3 opacity-50"></i>
         <p>No network interfaces detected</p>
       </div>
@@ -27,22 +27,22 @@ export default function NetworkInterface({ interfaces }: NetworkInterfaceProps) 
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-700/50">
-            <th className="text-left py-3 px-2 sm:px-4 text-cyan-400 font-semibold">
+          <tr className="border-b border-gray-300 dark:border-gray-700/50">
+            <th className="text-left py-3 px-2 sm:px-4 text-cyan-600 dark:text-cyan-400 font-semibold">
               <i className="fas fa-network-wired mr-2"></i>
               Interface
             </th>
-            <th className="text-right py-3 px-2 sm:px-4 text-emerald-400 font-semibold">
+            <th className="text-right py-3 px-2 sm:px-4 text-emerald-600 dark:text-emerald-400 font-semibold">
               <i className="fas fa-download mr-1"></i>
               <span className="hidden sm:inline">Download</span>
               <span className="inline sm:hidden">RX</span>
             </th>
-            <th className="text-right py-3 px-2 sm:px-4 text-purple-400 font-semibold">
+            <th className="text-right py-3 px-2 sm:px-4 text-purple-600 dark:text-purple-400 font-semibold">
               <i className="fas fa-upload mr-1"></i>
               <span className="hidden sm:inline">Upload</span>
               <span className="inline sm:hidden">TX</span>
             </th>
-            <th className="text-right py-3 px-2 sm:px-4 text-blue-400 font-semibold hidden md:table-cell">
+            <th className="text-right py-3 px-2 sm:px-4 text-blue-600 dark:text-blue-400 font-semibold hidden md:table-cell">
               <i className="fas fa-exchange-alt mr-1"></i>
               Total
             </th>
@@ -52,7 +52,7 @@ export default function NetworkInterface({ interfaces }: NetworkInterfaceProps) 
           {interfaces.map((iface, index) => (
             <tr
               key={index}
-              className="border-b border-gray-700/30 hover:bg-gray-800/30 transition-colors duration-200"
+              className="border-b border-gray-200 dark:border-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-800/30 transition-colors duration-200"
             >
               <td className="py-3 px-2 sm:px-4">
                 <div className="flex items-center space-x-2">
@@ -66,25 +66,25 @@ export default function NetworkInterface({ interfaces }: NetworkInterfaceProps) 
                         : 'bg-green-400'
                     }`}
                   ></div>
-                  <span className="font-mono font-semibold text-gray-300">
+                  <span className="font-mono font-semibold text-gray-700 dark:text-gray-300">
                     {iface.interface}
                   </span>
                 </div>
               </td>
-              <td className="py-3 px-2 sm:px-4 text-right font-mono text-emerald-300">
+              <td className="py-3 px-2 sm:px-4 text-right font-mono text-emerald-600 dark:text-emerald-300">
                 {iface.inputBytes}
               </td>
-              <td className="py-3 px-2 sm:px-4 text-right font-mono text-purple-300">
+              <td className="py-3 px-2 sm:px-4 text-right font-mono text-purple-600 dark:text-purple-300">
                 {iface.outputBytes}
               </td>
-              <td className="py-3 px-2 sm:px-4 text-right font-mono text-blue-300 hidden md:table-cell">
+              <td className="py-3 px-2 sm:px-4 text-right font-mono text-blue-600 dark:text-blue-300 hidden md:table-cell">
                 {iface.totalBytes}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-slate-500">
+      <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-slate-600 dark:text-slate-500">
         <div className="flex items-center space-x-1">
           <div className="w-2 h-2 rounded-full bg-green-400"></div>
           <span>Active</span>
