@@ -5,6 +5,8 @@ import { useSocket } from '@/hooks/useSocket'
 import LoadingScreen from '@/components/LoadingScreen'
 import Navigation from '@/components/Navigation'
 import StatsCard from '@/components/StatsCard'
+import LineChart from '@/components/LineChart'
+import NetworkInterface from '@/components/NetworkInterface'
 
 export default function Home() {
   const { isConnected, stats } = useSocket()
@@ -82,6 +84,129 @@ export default function Home() {
                 <div className="text-xs sm:text-sm text-secondary">Temperature</div>
               </div>
             </div>
+          </div>
+
+          {/* Real-time Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+            {/* CPU History Chart */}
+            <div className="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-blue-500/20 rounded-lg">
+                    <i className="fas fa-chart-line text-blue-400"></i>
+                  </div>
+                  <h3 className="text-lg font-semibold text-blue-300">CPU History</h3>
+                </div>
+                <div className="status-pill bg-blue-900/50 text-blue-300 text-xs">
+                  <i className="fas fa-pulse mr-1"></i>Live
+                </div>
+              </div>
+              <div className="h-40 sm:h-48">
+                {stats?.cpu_history && stats.cpu_history.length > 0 ? (
+                  <LineChart
+                    data={stats.cpu_history}
+                    label="CPU Usage"
+                    color="#60A5FA"
+                    dataKey="value"
+                    maxValue={100}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-slate-500">
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Loading...
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Memory History Chart */}
+            <div className="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-green-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-green-500/20 rounded-lg">
+                    <i className="fas fa-chart-area text-green-400"></i>
+                  </div>
+                  <h3 className="text-lg font-semibold text-green-300">Memory History</h3>
+                </div>
+                <div className="status-pill bg-green-900/50 text-green-300 text-xs">
+                  <i className="fas fa-pulse mr-1"></i>Live
+                </div>
+              </div>
+              <div className="h-40 sm:h-48">
+                {stats?.memory_history && stats.memory_history.length > 0 ? (
+                  <LineChart
+                    data={stats.memory_history}
+                    label="Memory Usage"
+                    color="#34D399"
+                    dataKey="value"
+                    maxValue={100}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-slate-500">
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Loading...
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Network History Chart */}
+            <div className="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 card-hover backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-cyan-500/20 rounded-lg">
+                    <i className="fas fa-signal text-cyan-400"></i>
+                  </div>
+                  <h3 className="text-lg font-semibold text-cyan-300">Network Traffic</h3>
+                </div>
+                <div className="status-pill bg-cyan-900/50 text-cyan-300 text-xs">
+                  <i className="fas fa-pulse mr-1"></i>Live
+                </div>
+              </div>
+              <div className="h-40 sm:h-48">
+                {stats?.network_history && stats.network_history.length > 0 ? (
+                  <LineChart
+                    data={stats.network_history.map((item) => ({
+                      value: ((item.input || 0) + (item.output || 0)) / 1024 / 1024,
+                    }))}
+                    label="Network Traffic (MB/s)"
+                    color="#22D3EE"
+                    dataKey="value"
+                    maxValue={Math.max(
+                      10,
+                      ...stats.network_history.map(
+                        (item) => ((item.input || 0) + (item.output || 0)) / 1024 / 1024
+                      )
+                    )}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-slate-500">
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Loading...
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Network Interfaces Section */}
+          <div className="gradient-bg rounded-xl p-4 sm:p-6 shadow-lg border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 card-hover backdrop-blur-sm mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-cyan-500/20 rounded-lg">
+                  <i className="fas fa-network-wired text-cyan-400 text-lg"></i>
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-cyan-300">Network Interfaces</h3>
+                  <p className="text-xs text-slate-500">All active network adapters</p>
+                </div>
+              </div>
+              <div className="status-pill bg-cyan-900/50 text-cyan-300">
+                <i className="fas fa-ethernet mr-1"></i>
+                {stats?.network?.length || 0} Interfaces
+              </div>
+            </div>
+            <NetworkInterface interfaces={stats?.network || []} />
           </div>
 
           {/* Main Dashboard Grid */}
