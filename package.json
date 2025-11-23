@@ -1,25 +1,42 @@
 {
+  "name": "statsmonit",
+  "version": "1.0.0",
+  "description": "A Simple Server Monitoring",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js",
+    "lint": "next lint"
+  },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "chart.js": "^4.4.0",
     "cors": "latest",
     "diskusage": "latest",
     "dotenv": "latest",
     "express": "latest",
+    "next": "^15.0.0",
     "node-os-utils": "latest",
-    "socket.io": "latest",
-    "systeminformation": "latest",
-    "tailwindcss": "^4.0.0",
-    "@tailwindcss/cli": "^4.0.0",
-    "ws": "latest"
+    "react": "^19.0.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^19.0.0",
+    "socket.io": "^4.7.0",
+    "socket.io-client": "^4.7.0",
+    "sweetalert2": "^11.0.0",
+    "systeminformation": "latest"
   },
-  "name": "statsmonit",
-  "type": "module",
-  "version": "1.0.0",
-  "description": "A Simple Server Monitoring",
-  "main": "index.js",
-  "devDependencies": {},
-  "scripts": {
-    "build": "npx @tailwindcss/cli -i ./src/styles.css -o ./public/css/styles.css --minify",
-    "start": "node index.js"
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^15.0.0",
+    "postcss": "^8.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.0.0"
   },
   "repository": {
     "type": "git",
@@ -32,7 +49,9 @@
     "statistic",
     "monitoring",
     "server",
-    "monitoring"
+    "monitoring",
+    "nextjs",
+    "react"
   ],
   "author": "caliph91",
   "license": "ISC",

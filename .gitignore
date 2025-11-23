@@ -1,7 +1,45 @@
+# dependencies
 node_modules
 package-lock.json
+bun.lock
+
+# logs
 nohup.*
 *.log
-bun.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# yaml
 *.yaml
+
+# Claude
 .claude
+
+# old files (keeping for reference)
+# Uncomment these lines if you want to remove old files:
+# /public/index.html
+# /public/js/
+# /index.js

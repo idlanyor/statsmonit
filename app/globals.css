@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 30, 34, 53;
+  --background-end-rgb: 15, 23, 42;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.7);
+}
+
+/* Animated text gradient */
+.animated-text {
+  background: linear-gradient(90deg, #60a5fa, #a78bfa, #60a5fa);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient 3s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+  100% {
+    background-position: 0% center;
+  }
+}
+
+/* Glass effect */
+.glass-effect {
+  background: rgba(30, 34, 53, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Gradient background for cards */
+.gradient-bg {
+  background: linear-gradient(135deg, rgba(30, 34, 53, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
+  backdrop-filter: blur(10px);
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Status pill */
+.status-pill {
+  @apply px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm border border-gray-700/50;
+}
+
+/* Status indicators */
+.status-indicator {
+  @apply w-2 h-2 rounded-full mr-2;
+}
+
+.indicator-green {
+  @apply bg-green-500;
+}
+
+.indicator-yellow {
+  @apply bg-yellow-500;
+}
+
+.indicator-red {
+  @apply bg-red-500;
+}
+
+/* Chart container */
+.chart-container {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .chart-container {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* Text colors */
+.text-primary {
+  @apply text-white;
+}
+
+.text-secondary {
+  @apply text-slate-400;
+}
+
+.text-accent {
+  @apply text-blue-400;
+}
+
+/* Loading animation */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: light) {
+  body.dark {
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgb(var(--background-end-rgb))
+      )
+      rgb(var(--background-start-rgb));
+  }
+}
