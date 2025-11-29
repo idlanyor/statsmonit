@@ -8,19 +8,28 @@ interface NavigationProps {
 }
 
 export default function Navigation({ isConnected, uptime }: NavigationProps) {
-  const [isDark, setIsDark] = useState(true)
+  const [isDark, setIsDark] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('statsmonit-theme') || 'dark'
-    setIsDark(savedTheme === 'dark')
-    document.documentElement.setAttribute('data-theme', savedTheme)
+    const savedTheme = localStorage.getItem('statsmonit-theme') || 'light'
+    const isDarkMode = savedTheme === 'dark'
+    setIsDark(isDarkMode)
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
   }, [])
 
   const toggleTheme = () => {
     const newTheme = isDark ? 'light' : 'dark'
     setIsDark(!isDark)
-    document.documentElement.setAttribute('data-theme', newTheme)
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
     localStorage.setItem('statsmonit-theme', newTheme)
   }
 
@@ -43,12 +52,12 @@ export default function Navigation({ isConnected, uptime }: NavigationProps) {
   }
 
   return (
-    <nav className="glass-effect sticky top-0 z-40 px-4 sm:px-6 py-4 mb-6 shadow-lg border-b border-gray-200/20">
+    <nav className="glass-effect sticky top-0 z-40 px-4 sm:px-6 py-4 mb-6 shadow-lg border-b border-gray-300/70 dark:border-gray-200/20">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <i className="fas fa-chart-line text-2xl sm:text-3xl text-blue-500"></i>
+              <i className="fas fa-chart-line text-2xl sm:text-3xl text-blue-600 dark:text-blue-500"></i>
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold animated-text">StatsMonit</h1>
@@ -56,7 +65,7 @@ export default function Navigation({ isConnected, uptime }: NavigationProps) {
           <div className="hidden lg:flex items-center space-x-2 text-sm text-secondary">
             <i className="fas fa-server text-xs"></i>
             <span>System Monitor</span>
-            <span className="text-blue-500">•</span>
+            <span className="text-accent">•</span>
             <span>Real-time</span>
           </div>
         </div>
@@ -66,7 +75,7 @@ export default function Navigation({ isConnected, uptime }: NavigationProps) {
             className="status-pill hover:scale-105 transition-all duration-200 touch-manipulation"
             title="Toggle Theme"
           >
-            <i className={`fas ${isDark ? 'fa-moon' : 'fa-sun'} text-yellow-400`}></i>
+            <i className={`fas ${isDark ? 'fa-moon' : 'fa-sun'} text-yellow-500 dark:text-yellow-400`}></i>
           </button>
           <button
             onClick={toggleFullscreen}

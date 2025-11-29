@@ -35,9 +35,15 @@ export function useSocket() {
   const [stats, setStats] = useState<SystemStats | null>(null)
 
   useEffect(() => {
-    // Initialize socket connection
+    // Initialize socket connection with optimized settings
     const socketInstance = io({
       path: '/socket.io',
+      transports: ['websocket'], // Skip polling, connect directly via websocket
+      reconnectionDelay: 500,    // Faster reconnection
+      reconnectionDelayMax: 2000,
+      timeout: 5000,             // Connection timeout
+      forceNew: false,
+      upgrade: false,            // Don't upgrade from polling
     })
 
     socketInstance.on('connect', () => {

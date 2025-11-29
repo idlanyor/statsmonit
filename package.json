@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
+    "dev:turbo": "next dev --turbo -p 8088",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
     "lint": "next lint"

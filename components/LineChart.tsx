@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -32,6 +32,17 @@ interface LineChartProps {
   color: string
   dataKey?: string
   maxValue?: number
+  formatAsBytes?: boolean
+}
+
+// Format bytes to human readable format
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const value = bytes / Math.pow(k, i)
+  return `${value.toFixed(1)} ${sizes[i]}`
 }
 
 export default function LineChart({
@@ -40,8 +51,36 @@ export default function LineChart({
   color,
   dataKey = 'value',
   maxValue = 100,
+  formatAsBytes = false,
 }: LineChartProps) {
   const chartRef = useRef<any>(null)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isFirstRender, setIsFirstRender] = useState(true)
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains('dark')
+      setIsDarkMode(isDark)
+    }
+
+    checkDarkMode()
+
+    // Watch for class changes on html element
+    const observer = new MutationObserver(checkDarkMode)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    // Disable animation on first render for faster initial load
+    if (isFirstRender && data.length > 0) {
+      setIsFirstRender(false)
+    }
+  }, [data, isFirstRender])
 
   // Prepare chart data
   const chartData = {
@@ -80,9 +119,9 @@ export default function LineChart({
       },
       tooltip: {
         enabled: true,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#fff',
-        bodyColor: '#fff',
+        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+        titleColor: isDarkMode ? '#fff' : '#1e293b',
+        bodyColor: isDarkMode ? '#fff' : '#1e293b',
         borderColor: color,
         borderWidth: 1,
         padding: 10,
@@ -92,6 +131,7 @@ export default function LineChart({
           label: (context) => {
             const value = context.parsed.y
             if (value === null || value === undefined) return '0'
+            if (formatAsBytes) return `${formatBytes(value)}/s`
             return `${value.toFixed(2)}${dataKey.includes('percent') || maxValue === 100 ? '%' : ''}`
           },
         },
@@ -107,27 +147,28 @@ export default function LineChart({
       y: {
         display: true,
         min: 0,
-        max: maxValue,
+        ...(formatAsBytes ? {} : { max: maxValue }),
         border: {
           display: false,
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.05)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.08)',
         },
         ticks: {
-          color: 'rgba(255, 255, 255, 0.5)',
+          color: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(30, 41, 55, 0.7)',
           font: {
             size: 10,
           },
           maxTicksLimit: 5,
           callback: function (value) {
+            if (formatAsBytes) return formatBytes(Number(value))
             return `${value}${maxValue === 100 ? '%' : ''}`
           },
         },
       },
     },
-    animation: {
-      duration: 750,
+    animation: isFirstRender ? false : {
+      duration: 200,
     },
   }
 

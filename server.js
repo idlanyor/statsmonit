@@ -25,24 +25,35 @@ app.prepare().then(() => {
     }
   })
 
-  // Initialize Socket.IO
+  // Initialize Socket.IO with optimized settings
   const io = new Server(server, {
     cors: {
       origin: '*',
       methods: ['GET', 'POST']
-    }
+    },
+    transports: ['websocket'],  // Only use websocket (faster)
+    pingTimeout: 3000,          // Faster ping timeout
+    pingInterval: 1000,         // Heartbeat every 1 second
+    connectTimeout: 5000,       // Connection timeout
+    allowUpgrades: false,       // Don't allow transport upgrades
   })
 
   const clients = new Set()
+  let cachedStats = null
 
-  // Send stats to all connected clients every 3 seconds
+  // Pre-fetch stats on startup for faster initial connection
+  ;(async () => {
+    cachedStats = await getStats()
+  })()
+
+  // Send stats to all connected clients every 1 second
   setInterval(async () => {
-    const stats = await getStats()
+    cachedStats = await getStats()
     for (const socket of clients) {
-      const statsWithUser = { ...stats, user_info: socket.userInfo }
+      const statsWithUser = { ...cachedStats, user_info: socket.userInfo }
       socket.emit('stats', statsWithUser)
     }
-  }, 3000)
+  }, 1000)
 
   io.on('connection', (socket) => {
     console.log('A client connected')
@@ -62,12 +73,16 @@ app.prepare().then(() => {
 
     clients.add(socket)
 
-    // Send initial data when client connects
-    ;(async () => {
-      const stats = await getStats()
-      stats.user_info = socket.userInfo
-      socket.emit('stats', stats)
-    })()
+    // Send initial data immediately using cached stats (faster)
+    if (cachedStats) {
+      socket.emit('stats', { ...cachedStats, user_info: socket.userInfo })
+    } else {
+      // Fallback if cache not ready yet
+      ;(async () => {
+        const stats = await getStats()
+        socket.emit('stats', { ...stats, user_info: socket.userInfo })
+      })()
+    }
 
     // Remove from clients list on disconnect
     socket.on('disconnect', () => {
